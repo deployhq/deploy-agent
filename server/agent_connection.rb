@@ -32,6 +32,7 @@ class AgentConnection
   end
 
   def close
+    @client_connections.values.each { |cc| cc.close }
     @server.clients_by_cn.delete_if{|_,v| v == self}
     @server.clients_by_socket.delete(@agent_socket)
     @server.epoll.del(@agent_socket)
@@ -50,14 +51,15 @@ class AgentConnection
     when COMMAND_CREATE_RESPONSE
       create_response(data)
     when COMMAND_DESTROY
-      destroy(data)
+      receive_destroy(data)
     end
   end
 
   def create_connection(ip, port, client_connection)
     id = generate_id
     @client_connections[id] = client_connection
-    send_data([1, id, "#{ip}/#{port}"].pack('Cna*'))
+    send_data([COMMAND_CREATE_REQUEST, id, "#{ip}/#{port}"].pack('Cna*'))
+    return id
   end
 
   def create_response(data)
@@ -73,8 +75,20 @@ class AgentConnection
     end
   end
 
-  def destroy(data)
-    puts data.inspect
+  def receive_destroy(data)
+    id = data.unpack('n')
+    @client_connections[id].close
+    @client_connections.delete(id)
+  end
+
+  def terminate_by_id(id)
+    if @client_connections.delete(id)
+      send_destroy(id)
+    end
+  end
+
+  def send_destroy(id)
+    send_data([COMMAND_DESTROY, id].pack('Cn'))
   end
 
   def send_data(data)

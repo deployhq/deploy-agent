@@ -18,4 +18,6 @@ state = sock.read(1).unpack('C')[0]
 if length > 3
   puts sock.read(length-3)
 end
-sock.close
+
+while sock.read(9999)
+end

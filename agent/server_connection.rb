@@ -5,6 +5,7 @@ include Socket::Constants
 class ServerConnection
   # Create a secure connection to the control server
   def initialize(agent)
+    @backend_connections = {}
     @agent = agent
     server_sock = TCPSocket.new('127.0.0.1', 7777)
     ctx = OpenSSL::SSL::SSLContext.new
@@ -46,6 +47,8 @@ class ServerConnection
         end
       when 4
         # Terminate connection
+        id = packet[1,2].unpack('n')[0]
+        backend_connections[id].destroy
       end
     end
   end

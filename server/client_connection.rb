@@ -29,18 +29,25 @@ class ClientConnection
   end
 
   def receive_data
-    case @state
-    when :new
+    @buffer << @client_socket.readpartial(10000)
+    if @state == :new
       # For a new connection, receive data until we have a complete connection request
-      @buffer << @client_socket.readpartial(10000)
       if @buffer.bytesize >=2 && @buffer.bytesize >= @buffer[0,2].unpack('n')[0]
         # Process the connection request
         packet = @buffer[2, @buffer[0,2].unpack('n')[0]-2]
         @buffer = @buffer[@buffer[0,2].unpack('n')[0]..-1]
         agent_cn, ip, port = packet.split('/', 3)
-        agent_connection = @server.clients_by_cn[agent_cn]
-        agent_connection.create_connection(ip, port, self)
+        if @agent_connection = @server.clients_by_cn[agent_cn]
+          @id = @agent_connection.create_connection(ip, port, self)
+          @state = :connected
+        else
+          send_connect_fail("Agent not available")
+          close
+        end
       end
+    end
+    if @buffer.bytesize > 0 && state == :connected
+      # There's some real data in the buffer
     end
   rescue EOFError
     close
@@ -55,8 +62,8 @@ class ClientConnection
   end
 
   def close
+    @agent_connection.terminate_by_id(@id) if @id
     @server.clients_by_socket.delete(@client_socket)
-    puts @client_socket.inspect
     @server.epoll.del(@client_socket)
     @client_socket.close
   end

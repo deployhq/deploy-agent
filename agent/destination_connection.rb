@@ -1,6 +1,5 @@
 class DestinationConnection
   def initialize(family, address, port, agent, id)
-    puts id.inspect
     @agent = agent
     @socket = Socket.new(family, Socket::Constants::SOCK_STREAM, 0)
     @agent.connections_by_socket[@socket] = self

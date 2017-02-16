@@ -16,14 +16,6 @@ class Server
     @epoll = Epoll.create
   end
 
-  def status
-    loop do
-      puts @clients_by_socket.keys.inspect
-      puts clients_by_cn.keys.inspect
-      sleep 1
-    end
-  end
-
   def run
     Thread.new{status}
     agent_server_socket = TCPServer.new(7777)
