@@ -1,13 +1,17 @@
 require 'socket'
 include Socket::Constants
 
+# The ServerConnection class deals with all communication with the control server
 class ServerConnection
+  # Create a secure connection to the control server
   def initialize(agent)
     @agent = agent
     server_sock = TCPSocket.new('127.0.0.1', 7777)
     ctx = OpenSSL::SSL::SSLContext.new
     ctx.cert = OpenSSL::X509::Certificate.new(File.read("certificate.pem"))
     ctx.key = OpenSSL::PKey::RSA.new(File.read("key.pem"))
+    ctx.ca_file = "ca.pem"
+    ctx.verify_mode = OpenSSL::SSL::VERIFY_PEER
     @socket = OpenSSL::SSL::SSLSocket.new(server_sock, ctx)
     @socket.connect
     @agent.epoll.add(@socket, Epoll::IN)
@@ -16,8 +20,8 @@ class ServerConnection
     @send_buffer = String.new.force_encoding('BINARY')
   end
 
+  # Receive and process packets from the control server
   def receive_data
-    # Process packets from server
     @buffer << @socket.readpartial(10240)
     while(@socket.pending > 0)
       @buffer << @socket.readpartial(10240)
@@ -29,33 +33,60 @@ class ServerConnection
       case packet.bytes[0]
       when 1
         # New connection
-        host, port = packet[1..-1].split('/', 2)
+        id = packet[0,2].unpack('n')[0]
+        host, port = packet[3..-1].split('/', 2)
         puts "Connect Request: #{host}:#{port}"
         @agent.dns_resolver.resolve(host) do |status, family, address|
           puts "got answer from dns: #{status}, #{family}, #{address}"
           if status
-            DestinationConnection.new(family, address, port, @agent)
+            DestinationConnection.new(family, address, port, @agent, id)
           else
             # Respond with DNS error
           end
         end
+      when 4
+        # Terminate connection
       end
     end
   end
 
-  def send_data
-    @send_buffer << [data.bytesize+2, data].pack('na*')
-    @server.epoll.mod(@client_socket, Epoll::IN|Epoll::OUT)
+  # Notify server of successful connection
+  def send_connection_success(id)
+    send_packet([2, id, 0].pack('CnC'))
   end
 
+  # Notify server of failed connection
+  def send_connection_error(id, reason)
+    send_packet([2, id, 1, reason].pack('CnCa*'))
+  end
+
+  # Notify server of closed connection
+  def send_connection_close(id)
+    send_packet([3, id].pack('Cn'))
+  end
+
+  # Proxy connection data to the server
+  def send_data(id, data)
+    send_packet([4, id, data].pack('Cna*'))
+  end
+
+  # Called by event loop to send all waiting packets to the server
   def send_buffer
     bytes_sent = @socket.write_nonblock(@send_buffer)
     if bytes_sent >= @send_buffer.bytesize
       @send_buffer = String.new.force_encoding('BINARY')
-      @server.epoll.mod(@socket, Epoll::IN)
+      @agent.epoll.mod(@socket, Epoll::IN)
     else
       @send_buffer = @send_buffer[bytes_sent..-1]
     end
+  end
+
+  private
+
+  # Send a packet of data to the server
+  def send_packet(data)
+    @send_buffer << [data.bytesize+2, data].pack('na*')
+    @agent.epoll.mod(@socket, Epoll::IN|Epoll::OUT)
   end
 
 end

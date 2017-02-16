@@ -10,6 +10,7 @@ class Agent
   attr_reader :epoll
   attr_reader :connections_by_socket
   attr_reader :dns_resolver
+  attr_reader :server_connection
 
   def initialize
     @epoll = Epoll.create
@@ -17,7 +18,7 @@ class Agent
   end
 
   def run
-    ServerConnection.new(self)
+    @server_connection = ServerConnection.new(self)
     @dns_resolver = DNSResolver.new(self)
 
     loop do

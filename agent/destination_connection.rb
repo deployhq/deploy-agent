@@ -1,9 +1,9 @@
 class DestinationConnection
-  def initialize(family, address, port, agent)
+  def initialize(family, address, port, agent, id)
     @agent = agent
     @socket = Socket.new(family, Socket::Constants::SOCK_STREAM, 0)
     @agent.connections_by_socket[@socket] = self
-    @id = @socket.to_i
+    @id = id
     @sockaddr = Socket.sockaddr_in(port.to_i, address.to_s)
     begin
       @status = :connecting
@@ -19,9 +19,17 @@ class DestinationConnection
     if @status == :connecting
       begin
         @socket.connect_nonblock(@sockaddr)
-      rescue Errno::ECONNREFUSED
+      rescue IO::WaitWritable
+        puts "huh?"
+        return
+      rescue => e
         # Send connection error
+        @agent.epoll.del(@socket)
+        @socket.close
+        @agent.server_connection.send_connection_error(@id, e.class.to_s)
+        return
       end
+      @agent.server_connection.send_connection_success(@id)
       @status = :complete
     else
     end

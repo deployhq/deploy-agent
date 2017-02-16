@@ -16,7 +16,7 @@ class AgentConnection
 
   def generate_id
     @id += 1
-    @id = 1 if id > 65535
+    @id = 1 if @id > 65535
     @id
   end
 
@@ -47,6 +47,10 @@ class AgentConnection
     case command
     when COMMAND_DATA
       data(data)
+    when COMMAND_CREATE_RESPONSE
+      create_response(data)
+    when COMMAND_DESTROY
+      destroy(data)
     end
   end
 
@@ -54,6 +58,14 @@ class AgentConnection
     id = generate_id
     @client_connections[id] = client_connection
     send_data([1, id, "#{ip}/#{port}"].pack('Cna*'))
+  end
+
+  def create_response(data)
+    puts data.inspect
+  end
+
+  def destroy(data)
+    put data.inspect
   end
 
   def send_data(data)
