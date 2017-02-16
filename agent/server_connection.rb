@@ -33,7 +33,7 @@ class ServerConnection
       case packet.bytes[0]
       when 1
         # New connection
-        id = packet[0,2].unpack('n')[0]
+        id = packet[1,2].unpack('n')[0]
         host, port = packet[3..-1].split('/', 2)
         puts "Connect Request: #{host}:#{port}"
         @agent.dns_resolver.resolve(host) do |status, family, address|
@@ -41,7 +41,7 @@ class ServerConnection
           if status
             DestinationConnection.new(family, address, port, @agent, id)
           else
-            # Respond with DNS error
+            send_connection_error(id, "DNS Lookup Failed")
           end
         end
       when 4

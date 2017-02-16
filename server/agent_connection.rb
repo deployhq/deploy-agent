@@ -61,11 +61,20 @@ class AgentConnection
   end
 
   def create_response(data)
-    puts data.inspect
+    id, status, reason = data.unpack('nCa*')
+    case status
+    when 0
+      # Connection Success
+      @client_connections[id].send_connect_success
+    else
+      # Connection Failed
+      @client_connections[id].send_connect_fail(reason)
+      @client_connections[id].close
+    end
   end
 
   def destroy(data)
-    put data.inspect
+    puts data.inspect
   end
 
   def send_data(data)

@@ -1,5 +1,6 @@
 class DestinationConnection
   def initialize(family, address, port, agent, id)
+    puts id.inspect
     @agent = agent
     @socket = Socket.new(family, Socket::Constants::SOCK_STREAM, 0)
     @agent.connections_by_socket[@socket] = self
@@ -26,7 +27,7 @@ class DestinationConnection
         # Send connection error
         @agent.epoll.del(@socket)
         @socket.close
-        @agent.server_connection.send_connection_error(@id, e.class.to_s)
+        @agent.server_connection.send_connection_error(@id, e.message.to_s)
         return
       end
       @agent.server_connection.send_connection_success(@id)
