@@ -46,11 +46,28 @@ class ClientConnection
         end
       end
     end
-    if @buffer.bytesize > 0 && state == :connected
+    if @buffer.bytesize > 0 && @state == :connected
       # There's some real data in the buffer
+      @agent_connection.send_data(@id, @buffer)
+      @buffer = String.new.force_encoding('BINARY')
     end
   rescue EOFError
     close
+  end
+
+  def send_data(data)
+    @send_buffer << data
+    @server.epoll.mod(@client_socket, Epoll::IN | Epoll::OUT)
+  end
+
+  def send_buffer
+    bytes_sent = @client_socket.write_nonblock(@send_buffer)
+    if bytes_sent >= @send_buffer.bytesize
+      @send_buffer = String.new.force_encoding('BINARY')
+      @server.epoll.mod(@client_socket, Epoll::IN)
+    else
+      @send_buffer = @send_buffer[bytes_sent..-1]
+    end
   end
 
   def send_connect_success

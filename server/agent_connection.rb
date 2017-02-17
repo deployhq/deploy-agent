@@ -12,6 +12,7 @@ class AgentConnection
     @server = server
     @client_connections = {}
     @id = 0
+    puts "Agent Connected. CN: #{cn}"
   end
 
   def generate_id
@@ -55,10 +56,16 @@ class AgentConnection
     end
   end
 
+  def data(packet)
+    id, data = packet.unpack('na*')
+    @client_connections[id].send_data(data)
+  end
+
   def create_connection(ip, port, client_connection)
     id = generate_id
+    puts "[#{id}] Creating Connection through agent to #{ip}/#{port}"
     @client_connections[id] = client_connection
-    send_data([COMMAND_CREATE_REQUEST, id, "#{ip}/#{port}"].pack('Cna*'))
+    send_packet([COMMAND_CREATE_REQUEST, id, "#{ip}/#{port}"].pack('Cna*'))
     return id
   end
 
@@ -76,7 +83,8 @@ class AgentConnection
   end
 
   def receive_destroy(data)
-    id = data.unpack('n')
+    id = data.unpack('n')[0]
+    puts "[#{id}] Received close request from agent"
     @client_connections[id].close
     @client_connections.delete(id)
   end
@@ -88,10 +96,16 @@ class AgentConnection
   end
 
   def send_destroy(id)
-    send_data([COMMAND_DESTROY, id].pack('Cn'))
+    puts "[#{id}] Sending close request to agent"
+    send_packet([COMMAND_DESTROY, id].pack('Cn'))
   end
 
-  def send_data(data)
+  def send_data(id, data)
+    puts "[#{id}] Sending data to agent for connection"
+    send_packet([COMMAND_DATA, id, data].pack('Cna*'))
+  end
+
+  def send_packet(data)
     @send_buffer << [data.bytesize+2, data].pack('na*')
     @server.epoll.mod(@agent_socket, Epoll::IN|Epoll::OUT)
   end

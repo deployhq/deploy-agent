@@ -38,17 +38,22 @@ class ServerConnection
         # New connection
         id = packet[1,2].unpack('n')[0]
         host, port = packet[3..-1].split('/', 2)
-        puts "[#{id}] Connect Request: #{host}:#{port}"
+        puts "[#{id}] Connect Request from server: #{host}:#{port}"
         begin
           @destination_connections[id] = DestinationConnection.new(host, port, @agent, id)
         rescue => e
           send_connection_error(id, e.message)
         end
-      when 4
+      when 3
         # Terminate connection
         id = packet[1,2].unpack('n')[0]
-        puts "[#{id}] Close requested"
-        destination_connections[id].destroy
+        puts "[#{id}] Close requested from server"
+        @destination_connections[id].close
+      when 4
+        # Data incoming
+        id = packet[1,2].unpack('n')[0]
+        puts "[#{id}] Data received from server"
+        @destination_connections[id].send_data(packet[3..-1])
       end
     end
   end
