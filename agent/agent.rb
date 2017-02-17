@@ -4,12 +4,10 @@ require 'epoll'
 
 require_relative 'server_connection'
 require_relative 'destination_connection'
-require_relative 'dns_resolver'
 
 class Agent
   attr_reader :epoll
   attr_reader :connections_by_socket
-  attr_reader :dns_resolver
   attr_reader :server_connection
 
   def initialize
@@ -19,7 +17,6 @@ class Agent
 
   def run
     @server_connection = ServerConnection.new(self)
-    @dns_resolver = DNSResolver.new(self)
 
     loop do
       evlist = epoll.wait

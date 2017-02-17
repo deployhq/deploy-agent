@@ -1,11 +1,13 @@
 require 'socket'
+require 'ipaddr'
+
 include Socket::Constants
 
 # The ServerConnection class deals with all communication with the control server
 class ServerConnection
   # Create a secure connection to the control server
   def initialize(agent)
-    @backend_connections = {}
+    @destination_connections = {}
     @agent = agent
     server_sock = TCPSocket.new('127.0.0.1', 7777)
     ctx = OpenSSL::SSL::SSLContext.new
@@ -36,19 +38,17 @@ class ServerConnection
         # New connection
         id = packet[1,2].unpack('n')[0]
         host, port = packet[3..-1].split('/', 2)
-        puts "Connect Request: #{host}:#{port}"
-        @agent.dns_resolver.resolve(host) do |status, family, address|
-          puts "got answer from dns: #{status}, #{family}, #{address}"
-          if status
-            DestinationConnection.new(family, address, port, @agent, id)
-          else
-            send_connection_error(id, "DNS Lookup Failed")
-          end
+        puts "[#{id}] Connect Request: #{host}:#{port}"
+        begin
+          @destination_connections[id] = DestinationConnection.new(host, port, @agent, id)
+        rescue => e
+          send_connection_error(id, e.message)
         end
       when 4
         # Terminate connection
         id = packet[1,2].unpack('n')[0]
-        backend_connections[id].destroy
+        puts "[#{id}] Close requested"
+        destination_connections[id].destroy
       end
     end
   end

@@ -1,10 +1,15 @@
 class DestinationConnection
-  def initialize(family, address, port, agent, id)
+  def initialize(host, port, agent, id)
     @agent = agent
-    @socket = Socket.new(family, Socket::Constants::SOCK_STREAM, 0)
+    ipaddr = IPAddr.new(host)
+    if ipaddr.ipv4?
+      @socket = Socket.new(Socket::Constants::AF_INET, Socket::Constants::SOCK_STREAM, 0)
+    else
+      @socket = Socket.new(Socket::Constants::AF_INET6, Socket::Constants::SOCK_STREAM, 0)
+    end
     @agent.connections_by_socket[@socket] = self
     @id = id
-    @sockaddr = Socket.sockaddr_in(port.to_i, address.to_s)
+    @sockaddr = Socket.sockaddr_in(port.to_i, host.to_s)
     begin
       @status = :connecting
       @socket.connect_nonblock(@sockaddr)
