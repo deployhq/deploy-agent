@@ -1,0 +1,14 @@
+This is the Deploy TCP proxy server. This daemon should run on an aTech Server
+and provides the bridge between an aTech application and the agent running on
+a customer's network.
+
+## Installation
+
+Check out this code onto a server and create the following configuration files.
+
+* ca.pem - The CA certificate used to authenticate agents
+* certificate.pem - The server certificate used to authenticate this server
+* key.pem - The key corresponding to certificate.pem
+* psk - A 40 character pre-shared key used to authenticate aTech client apps
+
+Finally, execute server.rb

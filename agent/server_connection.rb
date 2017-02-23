@@ -22,6 +22,7 @@ class ServerConnection
     @agent.connections_by_socket[@socket] = self
     @buffer = String.new.force_encoding('BINARY')
     @send_buffer = String.new.force_encoding('BINARY')
+    puts "Successfully connected to server"
   end
 
   # Receive and process packets from the control server

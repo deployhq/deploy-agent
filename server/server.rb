@@ -24,10 +24,10 @@ class Server
     agent_server_socket = TCPServer.new(7777)
     client_server_socket = TCPServer.new(7766)
     sslContext = OpenSSL::SSL::SSLContext.new
-    sslContext.cert = OpenSSL::X509::Certificate.new(File.read("certificate.pem"))
-    sslContext.key = OpenSSL::PKey::RSA.new(File.read("key.pem"))
+    sslContext.cert = OpenSSL::X509::Certificate.new(File.read(File.expand_path(File.join(File.dirname(__FILE__), "certificate.pem"))))
+    sslContext.key = OpenSSL::PKey::RSA.new(File.read(File.expand_path(File.join(File.dirname(__FILE__), "key.pem"))))
     sslContext.verify_mode = OpenSSL::SSL::VERIFY_PEER
-    sslContext.ca_file = "ca.pem"
+    sslContext.ca_file = File.expand_path(File.join(File.dirname(__FILE__), "ca.pem"))
     ssl_server_socket = OpenSSL::SSL::SSLServer.new(agent_server_socket, sslContext)
 
     @epoll.add(ssl_server_socket, Epoll::IN)
