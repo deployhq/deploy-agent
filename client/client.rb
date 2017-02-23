@@ -18,18 +18,26 @@ class TCPSocket
   end
   class << self
     attr_accessor :proxy_host, :proxy_port, :proxy_cn
+    def enable_proxy(proxy_host, proxy_port, proxy_cn)
+      TCPSocket.proxy_host = proxy_host
+      TCPSocket.proxy_port = proxy_port
+      TCPSocket.proxy_cn = proxy_cn
+    end
+    def disable_proxy
+      TCPSocket.proxy_host = nil
+      TCPSocket.proxy_port = nil
+      TCPSocket.proxy_cn = nil
+    end
   end
 end
 
-TCPSocket.proxy_host = '127.0.0.1'
-TCPSocket.proxy_port = 7766
-TCPSocket.proxy_cn = 'charlie.office.atech.io'
-
-#sock = TCPSocket.new('127.0.0.1', 3333)
-#sock.close
+TCPSocket.enable_proxy('127.0.0.1', 7766, 'charlie.office.atech.io')
 
 sock = TCPSocket.new('216.58.212.110', 80)
-sleep 1
 sock.write("GET / HTTP/1.1\r\nHost: google.com\r\nConnection: close\r\n\r\n")
 puts sock.read
 sock.close
+
+sock = TCPSocket.new('127.0.0.1', 9999)
+
+TCPSocket.disable_proxy
