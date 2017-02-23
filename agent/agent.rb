@@ -16,7 +16,7 @@ class Agent
   end
 
   def run
-    @server_connection = ServerConnection.new(self)
+    @server_connection = ServerConnection.new(self, ARGV[0] || 'agent.deployhq.com')
 
     loop do
       evlist = epoll.wait

@@ -6,10 +6,10 @@ include Socket::Constants
 # The ServerConnection class deals with all communication with the control server
 class ServerConnection
   # Create a secure connection to the control server
-  def initialize(agent)
+  def initialize(agent, server_host)
     @destination_connections = {}
     @agent = agent
-    server_sock = TCPSocket.new('agent.deployhq.com', 7777)
+    server_sock = TCPSocket.new(server_host, 7777)
     ctx = OpenSSL::SSL::SSLContext.new
     ctx.cert = OpenSSL::X509::Certificate.new(File.read("certificate.pem"))
     ctx.key = OpenSSL::PKey::RSA.new(File.read("key.pem"))
@@ -17,7 +17,7 @@ class ServerConnection
     ctx.verify_mode = OpenSSL::SSL::VERIFY_PEER
     @socket = OpenSSL::SSL::SSLSocket.new(server_sock, ctx)
     @socket.connect
-    @socket.post_connection_check('agent.deployhq.com')
+    @socket.post_connection_check(server_host) unless server_host == '127.0.0.1'
     @agent.epoll.add(@socket, Epoll::IN)
     @agent.connections_by_socket[@socket] = self
     @buffer = String.new.force_encoding('BINARY')
