@@ -1,3 +1,6 @@
+require 'securerandom'
+require 'digest'
+
 class ClientConnection
   # The client connection is very simple. When a connection is initially made,
   # a destination address and port are send to the server in the form:
@@ -26,13 +29,26 @@ class ClientConnection
 
     # The state of this connection
     @state = :new
+
+    # Generare a nonce and send to the client
+    @nonce = SecureRandom.hex(20)
+    @client_socket.write(@nonce)
+
+    # Calculate the correct authentication response for this nonce using the PSK
+    @correct_auth = Digest::SHA1.hexdigest(@nonce + @server.psk)
   end
 
   def receive_data
     @buffer << @client_socket.readpartial(10000)
     if @state == :new
       # For a new connection, receive data until we have a complete connection request
-      if @buffer.bytesize >=2 && @buffer.bytesize >= @buffer[0,2].unpack('n')[0]
+      if @buffer.bytesize >=42 && @buffer.bytesize >= 40 + @buffer[40,2].unpack('n')[0]
+        # Extract the signature
+        auth_response = @buffer.slice!(0..39)
+        unless auth_response == @correct_auth
+          send_connect_fail("Incorrect PSK")
+          return close
+        end
         # Process the connection request
         packet = @buffer[2, @buffer[0,2].unpack('n')[0]-2]
         @buffer = @buffer[@buffer[0,2].unpack('n')[0]..-1]
@@ -42,7 +58,7 @@ class ClientConnection
           @state = :connected
         else
           send_connect_fail("Agent not available")
-          close
+          return close
         end
       end
     end

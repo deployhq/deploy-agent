@@ -9,10 +9,13 @@ class Server
   attr_reader :clients_by_cn
   attr_reader :clients_by_socket
   attr_reader :epoll
+  attr_reader :psk
 
   def initialize
     @clients_by_socket = {}
     @clients_by_cn = {}
+    psk_path = File.expand_path(File.join(File.dirname(__FILE__), "psk"))
+    @psk = File.read(psk_path).strip
     @epoll = Epoll.create
   end
 
