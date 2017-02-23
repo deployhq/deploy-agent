@@ -56,6 +56,9 @@ class ServerConnection
         @destination_connections[id].send_data(packet[3..-1])
       end
     end
+  rescue EOFError
+    puts "Server disconnected"
+    Process.exit(0)
   end
 
   # Notify server of successful connection

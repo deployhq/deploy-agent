@@ -58,7 +58,11 @@ class AgentConnection
 
   def data(packet)
     id, data = packet.unpack('na*')
-    @client_connections[id].send_data(data)
+    if @client_connections[id]
+      @client_connections[id].send_data(data)
+    else
+      puts "Discarding data for disconnected client"
+    end
   end
 
   def create_connection(ip, port, client_connection)
@@ -85,8 +89,12 @@ class AgentConnection
   def receive_destroy(data)
     id = data.unpack('n')[0]
     puts "[#{id}] Received close request from agent"
-    @client_connections[id].close
-    @client_connections.delete(id)
+    if @client_connections[id]
+      @client_connections[id].close
+      @client_connections.delete(id)
+    else
+      puts "Discarding close request for disconnected client"
+    end
   end
 
   def terminate_by_id(id)

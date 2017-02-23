@@ -33,17 +33,20 @@ class Server
     loop do
       evlist = @epoll.wait
       evlist.each do |ev|
-
         if ev.data == ssl_server_socket
-          # New agent incoming
-          client_socket = ev.data.accept
-          dn = client_socket.peer_cert.subject.to_a.each_with_object({}) do |i,h|
-            h[i[0]] = i[1]
+          begin
+            # New agent incoming
+            client_socket = ev.data.accept
+            dn = client_socket.peer_cert.subject.to_a.each_with_object({}) do |i,h|
+              h[i[0]] = i[1]
+            end
+            client = AgentConnection.new(client_socket, dn['CN'], self)
+            @clients_by_socket[client_socket] = client
+            @clients_by_cn[dn['CN']] = client
+            @epoll.add(client_socket, Epoll::IN)
+          rescue OpenSSL::SSL::SSLError
+            client_socket.close if client_socket and !client_socket.closed?
           end
-          client = AgentConnection.new(client_socket, dn['CN'], self)
-          @clients_by_socket[client_socket] = client
-          @clients_by_cn[dn['CN']] = client
-          @epoll.add(client_socket, Epoll::IN)
         elsif ev.data == client_server_socket
           # New client incoming
           client_socket = ev.data.accept
