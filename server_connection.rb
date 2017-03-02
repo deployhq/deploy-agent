@@ -12,6 +12,7 @@ class ServerConnection
 
   # Create a secure TLS connection to the Deploy server
   def initialize(agent, server_host)
+    puts "Attempting to connect to #{server_host}"
     @destination_connections = {}
     @agent = agent
 
@@ -40,6 +41,11 @@ class ServerConnection
     @buffer = String.new.force_encoding('BINARY')
 
     puts "Successfully connected to server"
+  rescue => e
+    puts "Something went wrong connecting to server."
+    puts "Retrying in 20 seconds."
+    sleep 20
+    retry
   end
 
   # Receive and process packets from the control server
