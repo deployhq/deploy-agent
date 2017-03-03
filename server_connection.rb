@@ -33,9 +33,9 @@ class ServerConnection
     # Check the remote certificate
     @socket.post_connection_check(server_host) unless server_host == '127.0.0.1'
     # Use epoll to wait for data from the server
-    @agent.epoll.add(@socket, Epoll::IN)
+    @agent.epoll.add(@socket.io, Epoll::IN)
     # Add this connection to the list of open sockets
-    @agent.connections_by_socket[@socket] = self
+    @agent.connections_by_socket[@socket.io] = self
     # Create send and receive buffers
     @send_buffer = String.new.force_encoding('BINARY')
     @buffer = String.new.force_encoding('BINARY')
@@ -118,7 +118,7 @@ class ServerConnection
     # Send as much data as possible
     if bytes_sent >= @send_buffer.bytesize
       @send_buffer = String.new.force_encoding('BINARY')
-      @agent.epoll.mod(@socket, Epoll::IN)
+      @agent.epoll.mod(@socket.io, Epoll::IN)
     else
       # If we didn't manage to send all the data, leave
       # the remaining data in the send buffer
@@ -131,7 +131,7 @@ class ServerConnection
   # Queue a packet of data to be sent to the Deploy server
   def send_packet(data)
     @send_buffer << [data.bytesize+2, data].pack('na*')
-    @agent.epoll.mod(@socket, Epoll::IN|Epoll::OUT)
+    @agent.epoll.mod(@socket.io, Epoll::IN|Epoll::OUT)
   end
 
 end
