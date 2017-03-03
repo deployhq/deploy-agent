@@ -114,7 +114,7 @@ class ServerConnection
 
   # Called by event loop to send all waiting packets to the Deploy server
   def send_buffer
-    bytes_sent = @socket.write_nonblock(@send_buffer)
+    bytes_sent = @socket.write_nonblock(@send_buffer[0,1024])
     # Send as much data as possible
     if bytes_sent >= @send_buffer.bytesize
       @send_buffer = String.new.force_encoding('BINARY')
