@@ -22,10 +22,10 @@ class ServerConnection
     ctx = OpenSSL::SSL::SSLContext.new
     ctx.verify_mode = OpenSSL::SSL::VERIFY_PEER
     # Load the agent certificate and key used to authenticate this agent
-    ctx.cert = OpenSSL::X509::Certificate.new(File.read(CERTIFICATE_PATH))
-    ctx.key = OpenSSL::PKey::RSA.new(File.read(KEY_PATH))
+    ctx.cert = OpenSSL::X509::Certificate.new(File.read(Agent::CERTIFICATE_PATH))
+    ctx.key = OpenSSL::PKey::RSA.new(File.read(Agent::KEY_PATH))
     # Load the Deploy CA used to verify the server
-    ctx.ca_file = CA_PATH
+    ctx.ca_file = Agent::CA_PATH
 
     # Create the secure connection
     @socket = OpenSSL::SSL::SSLSocket.new(@tcp_socket, ctx)
