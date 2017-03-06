@@ -1,85 +1,99 @@
 # The DestinationConnection class managea a connection to a backend server
 class DestinationConnection
+  attr_reader :socket
 
   # Create a connection to a backend server
-  def initialize(host, port, agent, id)
-    @agent = agent
+  def initialize(host, port, id, nio_selector, server_connection)
     @id = id
+    @nio_selector = nio_selector
+    @server_connection = server_connection
+
     # Check the IP address and create a socket
     ipaddr = IPAddr.new(host)
     if ipaddr.ipv4?
-      @socket = Socket.new(Socket::Constants::AF_INET, Socket::Constants::SOCK_STREAM, 0)
+      @tcp_socket = Socket.new(Socket::Constants::AF_INET, Socket::Constants::SOCK_STREAM, 0)
     else
-      @socket = Socket.new(Socket::Constants::AF_INET6, Socket::Constants::SOCK_STREAM, 0)
+      @tcp_socket = Socket.new(Socket::Constants::AF_INET6, Socket::Constants::SOCK_STREAM, 0)
     end
-    # Save this socket so it can be found later when data arrives
-    @agent.connections_by_socket[@socket] = self
-
     # Begin the connection attempt in the background
     @sockaddr = Socket.sockaddr_in(port.to_i, host.to_s)
     begin
-      @status = :connecting
-      @socket.connect_nonblock(@sockaddr)
+      @tcp_socket.connect_nonblock(@sockaddr)
+      # We don't expect to get here, but it's OK if we do
+      @status = :connected
+      @nio_monitor = @nio_selector.register(@tcp_socket, :r)
     rescue IO::WaitWritable
-      @agent.epoll.add(@socket, Epoll::OUT)
+      # This is expected, we will get a callback when the connection completes
+      @status = :connecting
+      @nio_monitor = @nio_selector.register(@tcp_socket, :w)
     end
+    @nio_monitor.value = self
+
     # Set up a send buffer
-    @send_buffer = String.new.force_encoding('BINARY')
+    @tx_buffer = String.new.force_encoding('BINARY')
   end
 
   # Queue data to be send to the backend
   def send_data(data)
-    @send_buffer << data
-    @agent.epoll.mod(@socket, Epoll::IN | Epoll::OUT)
+    @tx_buffer << data
+    @nio_monitor.interests = :rw
   end
 
-  def send_buffer
+  def tx_data
     # This might get called when there's data to send, but also
     # when a connections completes or fails.
     if @status == :connecting
       begin
-        @socket.connect_nonblock(@sockaddr)
+        @tcp_socket.connect_nonblock(@sockaddr)
       rescue IO::WaitWritable
         # This shouldn't happen. If it does, ignore it and
         # wait a bit longer until the connection completes
         return
       rescue => e
+        puts "[#{@id}] Connection failed: #{e.message.to_s}"
         # Something went wrong connecting, inform the Deploy Server
         close
-        @agent.server_connection.send_connection_error(@id, e.message.to_s)
+        @server_connection.send_connection_error(@id, e.message.to_s)
         return
       end
-      @agent.server_connection.send_connection_success(@id)
-      @status = :complete
+      @server_connection.send_connection_success(@id)
+      @status = :connected
     end
-    if @status == :complete && @send_buffer.bytesize > 0
-      bytes_sent = @socket.write_nonblock(@send_buffer)
-      if bytes_sent >= @send_buffer.bytesize
-        @send_buffer = String.new.force_encoding('BINARY')
-        @agent.epoll.mod(@socket, Epoll::IN)
+    if @status == :connected && @tx_buffer.bytesize > 0
+      bytes_sent = @tcp_socket.write_nonblock(@tx_buffer)
+      if bytes_sent >= @tx_buffer.bytesize
+        @tx_buffer = String.new.force_encoding('BINARY')
       else
-        @send_buffer = @send_buffer[bytes_sent..-1]
+        @tx_buffer = @tx_buffer[bytes_sent..-1]
       end
     end
+    if @status == :connected && @tx_buffer.bytesize == 0
+      # Nothing more to send, wait for inbound data only
+      @nio_monitor.interests = :r
+    end
+  rescue Errno::ECONNRESET
+    # The backend has closed the connection. Inform the Deploy server.
+    @server_connection.send_connection_close(@id)
+    # Ensure everything is tidied up
+    close
   end
 
-  def receive_data
+  def rx_data
     # Received data from backend. Pass this along to the Deploy server
+    @server_connection.send_data(@id, @tcp_socket.readpartial(10240))
     puts "[#{@id}] Received data from destination"
-    @agent.server_connection.send_data(@id, @socket.readpartial(10240))
   rescue EOFError, Errno::ECONNRESET
+    puts "[#{@id}] Destination closed connection"
     # The backend has closed the connection. Inform the Deploy server.
-    @agent.server_connection.send_connection_close(@id)
+    @server_connection.send_connection_close(@id)
     # Ensure everything is tidied up
     close
   end
 
   def close
-    @agent.connections_by_socket.delete(@socket)
-    unless @socket.closed?
-      @agent.epoll.del(@socket)
-      @socket.close
-    end
+    @nio_selector.deregister(@tcp_socket)
+    @server_connection.destination_connections.delete(@id)
+    @tcp_socket.close
   end
 
 end

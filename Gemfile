@@ -1,4 +1,4 @@
 source 'https://rubygems.org'
 
-gem 'epoll'
+gem 'nio4r'
 gem 'rb-readline'

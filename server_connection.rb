@@ -1,23 +1,22 @@
 require 'socket'
 require 'ipaddr'
-
-include Socket::Constants
+require 'openssl'
+require_relative('destination_connection')
 
 # The ServerConnection class deals with all communication with the Deploy server
 class ServerConnection
-  CONFIG_PATH      = File.expand_path('~/.deploy')
-  CERTIFICATE_PATH = File.expand_path('~/.deploy/agent.crt')
-  KEY_PATH         = File.expand_path('~/.deploy/agent.key')
-  CA_PATH          = File.expand_path('~/.deploy/ca.crt')
+  class ServerDisconnected < StandardError;end
+  attr_reader :destination_connections
+  attr_writer :nio_monitor
 
   # Create a secure TLS connection to the Deploy server
-  def initialize(agent, server_host)
+  def initialize(server_host, nio_selector, check_certificate=true)
     puts "Attempting to connect to #{server_host}"
     @destination_connections = {}
-    @agent = agent
+    @nio_selector = nio_selector
 
     # Create a TCP socket to the Deploy server
-    server_sock = TCPSocket.new(server_host, 7777)
+    @tcp_socket = TCPSocket.new(server_host, 7777)
 
     # Configure an OpenSSL context with server vertification
     ctx = OpenSSL::SSL::SSLContext.new
@@ -27,40 +26,39 @@ class ServerConnection
     ctx.key = OpenSSL::PKey::RSA.new(File.read(KEY_PATH))
     # Load the Deploy CA used to verify the server
     ctx.ca_file = CA_PATH
+
     # Create the secure connection
-    @socket = OpenSSL::SSL::SSLSocket.new(server_sock, ctx)
+    @socket = OpenSSL::SSL::SSLSocket.new(@tcp_socket, ctx)
     @socket.connect
     # Check the remote certificate
-    @socket.post_connection_check(server_host) unless server_host == '127.0.0.1'
-    # Use epoll to wait for data from the server
-    @agent.epoll.add(@socket.io, Epoll::IN)
-    # Add this connection to the list of open sockets
-    @agent.connections_by_socket[@socket.io] = self
+    @socket.post_connection_check(server_host) if check_certificate
     # Create send and receive buffers
-    @send_buffer = String.new.force_encoding('BINARY')
-    @buffer = String.new.force_encoding('BINARY')
+    @tx_buffer = String.new.force_encoding('BINARY')
+    @rx_buffer = String.new.force_encoding('BINARY')
+
+    @nio_monitor = @nio_selector.register(@tcp_socket, :r)
+    @nio_monitor.value = self
 
     puts "Successfully connected to server"
   rescue => e
     puts "Something went wrong connecting to server."
-    puts "Retrying in 20 seconds."
-    sleep 20
+    puts "Retrying in 10 seconds."
+    sleep 10
     retry
   end
 
   # Receive and process packets from the control server
-  def receive_data
+  def rx_data
     # Ensure all received data is read
-    @buffer << @socket.readpartial(10240)
+    @rx_buffer << @socket.readpartial(10240)
     while(@socket.pending > 0)
-      @buffer << @socket.readpartial(10240)
+      @rx_buffer << @socket.readpartial(10240)
     end
     # Wait until we have a complete packet of data
-    while @buffer.bytesize >=2 && @buffer.bytesize >= @buffer[0,2].unpack('n')[0]
-      length = @buffer[0,2].unpack('n')[0]
+    while @rx_buffer.bytesize >=2 && @rx_buffer.bytesize >= @rx_buffer[0,2].unpack('n')[0]
+      length = @rx_buffer.slice!(0,2).unpack('n')[0]
       # Extract the packet from the buffered stream
-      packet = @buffer[2, length-2]
-      @buffer = @buffer[length..-1]
+      packet = @rx_buffer.slice!(0,length-2)
       # Check what type of packet we have received
       case packet.bytes[0]
       when 1
@@ -70,16 +68,22 @@ class ServerConnection
         puts "[#{id}] Connect Request from server: #{host}:#{port}"
         begin
           # Create conenction to the final destination and save info by id
-          @destination_connections[id] = DestinationConnection.new(host, port, @agent, id)
+          @destination_connections[id] = DestinationConnection.new(host, port, id, @nio_selector, self)
         rescue => e
           # Something went wrong, inform the Deploy server
+          puts "An error occurred: #{e.message}"
+          puts e.backtrace
           send_connection_error(id, e.message)
         end
       when 3
         # Process a connection close request
         id = packet[1,2].unpack('n')[0]
-        puts "[#{id}] Close requested from server"
-        @destination_connections[id].close
+        if @destination_connections[id]
+          puts "[#{id}] Close requested by server, closing"
+          @destination_connections[id].close
+        else
+          puts "[#{id}] Close requested by server, not open"
+        end
       when 4
         # Data incoming, send it to the backend
         id = packet[1,2].unpack('n')[0]
@@ -87,9 +91,8 @@ class ServerConnection
         @destination_connections[id].send_data(packet[3..-1])
       end
     end
-  rescue EOFError
-    puts "Server disconnected"
-    Process.exit(0)
+  rescue EOFError, Errno::ECONNRESET
+    close
   end
 
   # Notify server of successful connection
@@ -113,25 +116,36 @@ class ServerConnection
   end
 
   # Called by event loop to send all waiting packets to the Deploy server
-  def send_buffer
-    bytes_sent = @socket.write_nonblock(@send_buffer[0,1024])
+  def tx_data
+    bytes_sent = @socket.write_nonblock(@tx_buffer[0,1024])
     # Send as much data as possible
-    if bytes_sent >= @send_buffer.bytesize
-      @send_buffer = String.new.force_encoding('BINARY')
-      @agent.epoll.mod(@socket.io, Epoll::IN)
+    if bytes_sent >= @tx_buffer.bytesize
+      @tx_buffer = String.new.force_encoding('BINARY')
+      @nio_monitor.interests = :r
     else
       # If we didn't manage to send all the data, leave
       # the remaining data in the send buffer
-      @send_buffer = @send_buffer[bytes_sent..-1]
+      @tx_buffer.slice!(0, bytes_sent)
     end
+  rescue EOFError, Errno::ECONNRESET
+    close
   end
 
   private
 
+  def close
+    puts "Server disconnected, terminating all connections"
+    @destination_connections.values.each{ |s| s.close }
+    @nio_selector.deregister(@tcp_socket)
+    @socket.close
+    @tcp_socket.close
+    raise ServerDisconnected
+  end
+
   # Queue a packet of data to be sent to the Deploy server
   def send_packet(data)
-    @send_buffer << [data.bytesize+2, data].pack('na*')
-    @agent.epoll.mod(@socket.io, Epoll::IN|Epoll::OUT)
+    @tx_buffer << [data.bytesize+2, data].pack('na*')
+    @nio_monitor.interests = :rw
   end
 
 end
