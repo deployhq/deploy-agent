@@ -3,6 +3,8 @@ require 'readline'
 require 'net/https'
 require 'json'
 require 'fileutils'
+require 'logger'
+
 require_relative('server_connection')
 
 class Agent
@@ -10,6 +12,8 @@ class Agent
   CERTIFICATE_PATH = File.expand_path('~/.deploy/agent.crt')
   KEY_PATH         = File.expand_path('~/.deploy/agent.key')
   CA_PATH          = File.expand_path('~/.deploy/ca.crt')
+  PID_PATH         = File.expand_path('~/.deploy/agent.pid')
+  LOG_PATH         = File.expand_path('~/.deploy/agent.log')
 
   def self.run_server
     nio_selector = NIO::Selector.new
@@ -23,6 +27,67 @@ class Agent
     end
   rescue ServerConnection::ServerDisconnected
     retry
+  end
+
+  def self.logger
+    @logger ||= begin
+      if $background
+        logger = Logger.new(LOG_PATH, 5, 10240)
+        logger.level = Logger::INFO
+        logger
+      else
+        Logger.new(STDOUT)
+      end
+    end
+  end
+
+  def self.is_running?
+    if pid = pid_from_file
+      Process.kill(0, pid)
+      true
+    else
+      false
+    end
+  rescue Errno::ESRCH
+    false
+  rescue Errno::EPERM
+    true
+  end
+
+  def self.pid_from_file
+    File.read(PID_PATH).to_i
+  rescue Errno::ENOENT
+    nil
+  end
+
+  def self.write_pid
+    begin
+      File.open(PID_PATH, 'w') { |f| f.write Process.pid.to_s }
+      at_exit { File.delete(PID_PATH) if File.exists?(PID_PATH) }
+    end
+  end
+
+  def self.start_server
+    if is_running?
+      puts "Process already running. Process ID #{pid_from_file}"
+      Process.exit(1)
+    else
+      pid = fork do
+        $background = true
+        self.write_pid
+        self.run_server
+      end
+      Process.detach(pid)
+    end
+  end
+
+  def self.stop_server
+    if is_running?
+      Process.kill('TERM', pid_from_file)
+    else
+      puts "Process not running"
+      Process.exit(1)
+    end
   end
 
   def self.generate_certificate
@@ -85,9 +150,11 @@ end
 
 case ARGV[0]
 when 'start'
+  Agent.start_server
+when 'stop'
+  Agent.stop_server
 when 'run'
   Agent.run_server
-when 'config'
+when 'setup'
   Agent.generate_certificate
-when 'install'
 end

@@ -11,7 +11,7 @@ class ServerConnection
 
   # Create a secure TLS connection to the Deploy server
   def initialize(server_host, nio_selector, check_certificate=true)
-    puts "Attempting to connect to #{server_host}"
+    Agent.logger.info "Attempting to connect to #{server_host}"
     @destination_connections = {}
     @nio_selector = nio_selector
 
@@ -39,10 +39,10 @@ class ServerConnection
     @nio_monitor = @nio_selector.register(@tcp_socket, :r)
     @nio_monitor.value = self
 
-    puts "Successfully connected to server"
+    Agent.logger.info "Successfully connected to server"
   rescue => e
-    puts "Something went wrong connecting to server."
-    puts "Retrying in 10 seconds."
+    Agent.logger.info "Something went wrong connecting to server."
+    Agent.logger.info "Retrying in 10 seconds."
     sleep 10
     retry
   end
@@ -65,29 +65,29 @@ class ServerConnection
         # Process new connection request
         id = packet[1,2].unpack('n')[0]
         host, port = packet[3..-1].split('/', 2)
-        puts "[#{id}] Connection request from server: #{host}:#{port}"
+        Agent.logger.info "[#{id}] Connection request from server: #{host}:#{port}"
         begin
           # Create conenction to the final destination and save info by id
           @destination_connections[id] = DestinationConnection.new(host, port, id, @nio_selector, self)
         rescue => e
           # Something went wrong, inform the Deploy server
-          puts "An error occurred: #{e.message}"
-          puts e.backtrace
+          Agent.logger.error "An error occurred: #{e.message}"
+          Agent.logger.error e.backtrace
           send_connection_error(id, e.message)
         end
       when 3
         # Process a connection close request
         id = packet[1,2].unpack('n')[0]
         if @destination_connections[id]
-          puts "[#{id}] Close requested by server, closing"
+          Agent.logger.info "[#{id}] Close requested by server, closing"
           @destination_connections[id].close
         else
-          puts "[#{id}] Close requested by server, not open"
+          Agent.logger.info "[#{id}] Close requested by server, not open"
         end
       when 4
         # Data incoming, send it to the backend
         id = packet[1,2].unpack('n')[0]
-        puts "[#{id}] #{packet.bytesize} bytes received from server" if ENV['AGENT_DEBUG']
+        Agent.logger.debug "[#{id}] #{packet.bytesize} bytes received from server"
         @destination_connections[id].send_data(packet[3..-1])
       end
     end
@@ -134,7 +134,7 @@ class ServerConnection
   private
 
   def close
-    puts "Server disconnected, terminating all connections"
+    Agent.logger.info "Server disconnected, terminating all connections"
     @destination_connections.values.each{ |s| s.close }
     @nio_selector.deregister(@tcp_socket)
     @socket.close
