@@ -56,6 +56,7 @@ class DestinationConnection
         @server_connection.send_connection_error(@id, e.message.to_s)
         return
       end
+        puts "[#{@id}] Connected to destination"
       @server_connection.send_connection_success(@id)
       @status = :connected
     end
@@ -80,8 +81,9 @@ class DestinationConnection
 
   def rx_data
     # Received data from backend. Pass this along to the Deploy server
-    @server_connection.send_data(@id, @tcp_socket.readpartial(10240))
-    puts "[#{@id}] Received data from destination"
+    data = @tcp_socket.readpartial(10240)
+    puts "[#{@id}] #{data.bytesize} bytes received from destination" if ENV['AGENT_DEBUG']
+    @server_connection.send_data(@id, data)
   rescue EOFError, Errno::ECONNRESET
     puts "[#{@id}] Destination closed connection"
     # The backend has closed the connection. Inform the Deploy server.

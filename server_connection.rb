@@ -65,7 +65,7 @@ class ServerConnection
         # Process new connection request
         id = packet[1,2].unpack('n')[0]
         host, port = packet[3..-1].split('/', 2)
-        puts "[#{id}] Connect Request from server: #{host}:#{port}"
+        puts "[#{id}] Connection request from server: #{host}:#{port}"
         begin
           # Create conenction to the final destination and save info by id
           @destination_connections[id] = DestinationConnection.new(host, port, id, @nio_selector, self)
@@ -87,7 +87,7 @@ class ServerConnection
       when 4
         # Data incoming, send it to the backend
         id = packet[1,2].unpack('n')[0]
-        puts "[#{id}] Data received from server"
+        puts "[#{id}] #{packet.bytesize} bytes received from server" if ENV['AGENT_DEBUG']
         @destination_connections[id].send_data(packet[3..-1])
       end
     end
