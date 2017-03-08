@@ -2,4 +2,4 @@
 $:.unshift('../../lib', __FILE__)
 require 'deploy_agent'
 
-DeployAgent::CLI.new.run(ARGV)
+DeployAgent::CLI.new.dispatch(ARGV)
