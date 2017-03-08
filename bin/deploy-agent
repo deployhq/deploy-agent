@@ -1,4 +1,4 @@
 #!/usr/bin/env ruby
 require 'deploy_agent'
 
-DeployAgent::CLI.new.run(ARGV)
+DeployAgent::CLI.new.dispatch(ARGV)
