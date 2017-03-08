@@ -14,11 +14,11 @@ module DeployAgent
         name = Readline.readline("Agent Name: ", true)
       rescue Interrupt => e
         puts
-        exit
+        exit 1
       end
       if name.length < 2
         puts "Name must be at least 2 characters."
-        exit
+        exit 1
       else
         uri = certificate_uri
         Net::HTTP.start(uri.host, uri.port, :use_ssl => uri.scheme == 'https') do |http|
