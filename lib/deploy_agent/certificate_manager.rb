@@ -1,3 +1,8 @@
+require 'readline'
+require 'net/https'
+require 'json'
+require 'fileutils'
+
 module DeployAgent
   class CertificateManager
 
@@ -14,11 +19,11 @@ module DeployAgent
         name = Readline.readline("Agent Name: ", true)
       rescue Interrupt => e
         puts
-        exit 1
+        Process.exit(1)
       end
       if name.length < 2
         puts "Name must be at least 2 characters."
-        exit 1
+        Process.exit(1)
       else
         uri = certificate_uri
         Net::HTTP.start(uri.host, uri.port, :use_ssl => uri.scheme == 'https') do |http|
@@ -52,6 +57,7 @@ module DeployAgent
             puts response.inspect
             puts response.body
             puts
+            Process.exit(1)
           end
         end
       end

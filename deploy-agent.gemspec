@@ -7,4 +7,8 @@ Gem::Specification.new do |s|
   s.email       = ["support@deployhq.com"]
   s.files       = Dir.glob("{lib,bin}/**/*")
   s.homepage    = 'https://www.deployhq.com/'
+  s.bindir      = "bin"
+  s.executables << 'deploy-agent'
+  s.add_runtime_dependency 'nio4r', '1.2.1'
+  s.add_runtime_dependency 'rb-readline', '0.5.4'
 end

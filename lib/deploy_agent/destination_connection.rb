@@ -1,3 +1,5 @@
+require 'socket'
+
 module DeployAgent
   # The DestinationConnection class managea a connection to a backend server
   class DestinationConnection

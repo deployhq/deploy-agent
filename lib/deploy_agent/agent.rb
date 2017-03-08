@@ -1,11 +1,5 @@
 require 'nio'
-require 'readline'
-require 'net/https'
-require 'json'
-require 'fileutils'
 require 'logger'
-
-require_relative('server_connection')
 
 module DeployAgent
   class Agent

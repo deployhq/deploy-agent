@@ -1,7 +1,6 @@
 require 'socket'
 require 'ipaddr'
 require 'openssl'
-require_relative('destination_connection')
 
 module DeployAgent
   # The ServerConnection class deals with all communication with the Deploy server

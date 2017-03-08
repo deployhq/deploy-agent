@@ -16,6 +16,7 @@ module DeployAgent
         CertificateManager.new.generate_certificate
       else
         puts "Usage: deploy-agent [start|stop|restart|status|run|setup]"
+        Process.exit(1)
       end
     end
 
@@ -82,6 +83,7 @@ module DeployAgent
         puts "Deploy agent is running. PID #{pid_from_file}"
       else
         puts "Deploy agent is not running."
+        Process.exit(1)
       end
     end
 
