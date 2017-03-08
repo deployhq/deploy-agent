@@ -39,10 +39,8 @@ module DeployAgent
     end
 
     def write_pid
-      begin
-        File.open(PID_PATH, 'w') { |f| f.write Process.pid.to_s }
-        at_exit { File.delete(PID_PATH) if File.exists?(PID_PATH) }
-      end
+      File.open(PID_PATH, 'w') { |f| f.write Process.pid.to_s }
+      at_exit { File.delete(PID_PATH) if File.exists?(PID_PATH) }
     end
 
     def restart_server
