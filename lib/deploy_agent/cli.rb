@@ -8,12 +8,14 @@ module DeployAgent
         start_server
       when 'stop'
         stop_server
+      when 'restart'
+        restart_server
       when 'run'
         run_server
       when 'setup'
         CertificateManager.new.generate_certificate
       else
-        puts "Usage: deploy-angent [start|stop|restart|status|run|setup]"
+        puts "Usage: deploy-agent [start|stop|restart|status|run|setup]"
       end
     end
 
@@ -41,6 +43,14 @@ module DeployAgent
         File.open(PID_PATH, 'w') { |f| f.write Process.pid.to_s }
         at_exit { File.delete(PID_PATH) if File.exists?(PID_PATH) }
       end
+    end
+
+    def restart_server
+      stop_server
+      while(is_running?)
+        sleep 0.5
+      end
+      start_server
     end
 
     def start_server
