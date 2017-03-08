@@ -22,7 +22,7 @@ module DeployAgent
       else
         uri = certificate_uri
         Net::HTTP.start(uri.host, uri.port, :use_ssl => uri.scheme == 'https') do |http|
-          request = Net::HTTP::Post.new uri
+          request = Net::HTTP::Post.new(uri)
           request.body = {:name => name}.to_json
           request['Content-Type'] = 'application/json'
           response = http.request request
