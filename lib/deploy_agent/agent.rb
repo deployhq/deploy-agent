@@ -1,3 +1,4 @@
+gem 'nio4r', '1.2.1'
 require 'nio'
 require 'logger'
 
