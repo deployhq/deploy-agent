@@ -1,3 +1,4 @@
 # Ignore certificates and keys
 */*.pem
 server/psk
+*.gem
