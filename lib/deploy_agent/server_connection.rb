@@ -43,7 +43,8 @@ module DeployAgent
       @agent.logger.info "Successfully connected to server"
     rescue => e
       @agent.logger.info "Something went wrong connecting to server."
-      random_sleep = rand(30) + 1
+      # Sleep between 10 and 20 seconds
+      random_sleep = rand(10) + 10
       @agent.logger.info "#{e.to_s} #{e.message}"
       @agent.logger.info "Retrying in #{random_sleep} seconds."
       sleep random_sleep
