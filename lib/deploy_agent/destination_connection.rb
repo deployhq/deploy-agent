@@ -53,6 +53,9 @@ module DeployAgent
           # This shouldn't happen. If it does, ignore it and
           # wait a bit longer until the connection completes
           return
+        rescue Errno::EISCONN
+          # Sometimes this exception is raised when we're
+          # connected (OSX). It represents success.
         rescue => e
           @agent.logger.info "[#{@id}] Connection failed: #{e.message.to_s}"
           # Something went wrong connecting, inform the Deploy Server
@@ -60,7 +63,7 @@ module DeployAgent
           @server_connection.send_connection_error(@id, e.message.to_s)
           return
         end
-          @agent.logger.info "[#{@id}] Connected to destination"
+        @agent.logger.info "[#{@id}] Connected to destination"
         @server_connection.send_connection_success(@id)
         @status = :connected
       end

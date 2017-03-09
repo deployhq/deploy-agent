@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name        = 'deploy-agent'
-  s.version     = '1.0.0'
+  s.version     = '1.0.1'
   s.summary     = "The Deploy agent"
   s.description = "This gem allows you to configure a secure proxy through which Deploy can forward connections"
   s.authors     = ["aTech Media"]
