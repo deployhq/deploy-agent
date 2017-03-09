@@ -43,6 +43,7 @@ module DeployAgent
       @agent.logger.info "Successfully connected to server"
     rescue => e
       @agent.logger.info "Something went wrong connecting to server."
+      @agent.logger.info "#{e.to_s} #{e.message}"
       @agent.logger.info "Retrying in 10 seconds."
       sleep 10
       retry
@@ -90,6 +91,11 @@ module DeployAgent
           id = packet[1,2].unpack('n')[0]
           @agent.logger.debug "[#{id}] #{packet.bytesize} bytes received from server"
           @destination_connections[id].send_data(packet[3..-1])
+        when 5
+          # This is a shutdown request. Disconnect and don't re-attempt connection.
+          @agent.logger.warn "Server rejected connection. Shutting down."
+          @agent.logger.warn packet[1..-1]
+          Process.exit(0)
         end
       end
     rescue EOFError, Errno::ECONNRESET

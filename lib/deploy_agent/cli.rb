@@ -14,6 +14,13 @@ module DeployAgent
       CertificateManager.new.generate_certificate
     end
 
+    def ensure_configured
+      unless File.file?(CERTIFICATE_PATH)
+        puts 'Deploy agent is not configured. Please run "deploy-agent setup" first.'
+        Process.exit(1)
+      end
+    end
+
     def restart
       stop
       while(is_running?)
@@ -27,6 +34,7 @@ module DeployAgent
         puts "Deploy agent already running. Process ID #{pid_from_file}"
         Process.exit(1)
       else
+        ensure_configured
         pid = fork do
           $background = true
           write_pid
@@ -58,6 +66,7 @@ module DeployAgent
     end
 
     def run
+      ensure_configured
       Agent.new.run
     end
 

@@ -14,6 +14,23 @@ module DeployAgent
     def generate_certificate
       puts 'This tool will assist you in generating a certificate for your Deploy agent.'
       puts
+      if File.file?(CERTIFICATE_PATH)
+        puts "***************************** WARNING *****************************"
+        puts "The Deploy agent has already been configured. Are you sure you wish"
+        puts "to remove the existing certificate and generate a new one?"
+        puts
+        Readline.completion_proc = Proc.new {}
+        begin
+          response = Readline.readline("Remove existing certificate? [no]: ", true)
+        rescue Interrupt => e
+          puts
+          Process.exit(1)
+        end
+        unless response == 'yes'
+          Process.exit(1)
+        end
+        puts
+      end
       puts 'Please enter a name for this agent.'
       Readline.completion_proc = Proc.new {}
       begin
