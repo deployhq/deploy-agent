@@ -52,7 +52,6 @@ module DeployAgent
           response_hash = JSON.parse(response.body)
           if response_hash['status'] == 'success'
             FileUtils.mkdir_p(CONFIG_PATH)
-            File.write(CA_PATH,          response_hash['data']['ca'])
             File.write(CERTIFICATE_PATH, response_hash['data']['certificate'])
             File.write(KEY_PATH,         response_hash['data']['private_key'])
             puts

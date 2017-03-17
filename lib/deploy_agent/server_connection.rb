@@ -21,7 +21,7 @@ module DeployAgent
 
       # Configure an OpenSSL context with server vertification
       ctx = OpenSSL::SSL::SSLContext.new
-      ctx.verify_mode = OpenSSL::SSL::VERIFY_PEER
+      ctx.verify_mode = check_certificate ? OpenSSL::SSL::VERIFY_PEER : OpenSSL::SSL::VERIFY_NONE
       # Load the agent certificate and key used to authenticate this agent
       ctx.cert = OpenSSL::X509::Certificate.new(File.read(CERTIFICATE_PATH))
       ctx.key = OpenSSL::PKey::RSA.new(File.read(KEY_PATH))

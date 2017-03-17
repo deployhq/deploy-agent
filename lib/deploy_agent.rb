@@ -8,7 +8,7 @@ module DeployAgent
   CONFIG_PATH      = File.expand_path('~/.deploy')
   CERTIFICATE_PATH = File.expand_path('~/.deploy/agent.crt')
   KEY_PATH         = File.expand_path('~/.deploy/agent.key')
-  CA_PATH          = File.expand_path('~/.deploy/ca.crt')
   PID_PATH         = File.expand_path('~/.deploy/agent.pid')
   LOG_PATH         = File.expand_path('~/.deploy/agent.log')
+  CA_PATH          = File.expand_path('../../ca.crt', __FILE__)
 end
