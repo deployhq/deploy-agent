@@ -70,6 +70,8 @@ module DeployAgent
           id = packet[1,2].unpack('n')[0]
           host, port = packet[3..-1].split('/', 2)
           @agent.logger.info "[#{id}] Connection request from server: #{host}:#{port}"
+          return send_connection_error(id, "Destination address not allowed") unless destination_allowed?(host)
+
           begin
             # Create conenction to the final destination and save info by id
             @destination_connections[id] = DestinationConnection.new(host, port, id, @nio_selector, self)
@@ -106,6 +108,18 @@ module DeployAgent
       end
     rescue EOFError, Errno::ECONNRESET
       close
+    end
+
+    def destination_allowed?(destination)
+      return false unless File.file?(ACCESS_PATH)
+      DeployAgent.allowed_destinations.each do |network|
+        begin
+          return true if IPAddr.new(network).include?(destination)
+        rescue IPAddr::InvalidAddressError
+          # Not a valid IP or netmask, deny and continue
+        end
+      end
+      false
     end
 
     # Notify server of successful connection

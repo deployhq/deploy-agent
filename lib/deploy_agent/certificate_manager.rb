@@ -54,6 +54,9 @@ module DeployAgent
             FileUtils.mkdir_p(CONFIG_PATH)
             File.write(CERTIFICATE_PATH, response_hash['data']['certificate'])
             File.write(KEY_PATH,         response_hash['data']['private_key'])
+            unless File.file?(ACCESS_PATH)
+              File.write(ACCESS_PATH, "# This file contains a list of host and network addresses the Deploy agent\n # will allow connections to. Add IPs or networks (CIDR format) as needed.\n\n# Allow deployments to localhost\n127.0.0.1\n::1\n")
+            end
             puts
             puts "Certificate has been successfully generated and installed."
             puts

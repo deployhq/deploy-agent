@@ -1,3 +1,5 @@
+require 'ipaddr'
+
 module DeployAgent
   class CLI
 
@@ -68,6 +70,20 @@ module DeployAgent
     def run
       ensure_configured
       Agent.new.run
+    end
+
+    def accesslist
+      puts "Access list:"
+      DeployAgent.allowed_destinations.each do |destination|
+        begin
+          IPAddr.new(destination)
+          puts " - " + destination
+        rescue IPAddr::InvalidAddressError
+          puts " - " + destination + " (INVALID)"
+        end
+      end
+      puts
+      puts "To edit the list of allowed servers, please modify " + ACCESS_PATH
     end
 
     private

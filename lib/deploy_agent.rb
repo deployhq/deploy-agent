@@ -10,5 +10,14 @@ module DeployAgent
   KEY_PATH         = File.expand_path('~/.deploy/agent.key')
   PID_PATH         = File.expand_path('~/.deploy/agent.pid')
   LOG_PATH         = File.expand_path('~/.deploy/agent.log')
+  ACCESS_PATH      = File.expand_path('~/.deploy/agent.access')
   CA_PATH          = File.expand_path('../../ca.crt', __FILE__)
+
+  def self.allowed_destinations
+      destinations = File.read(ACCESS_PATH)
+      destinations = destinations.split(/\n/).map(&:strip)
+      destinations = destinations.reject { |n| n == '' || n[0] == '#' }
+      destinations = destinations.map { |l| l.split(' ', 2)[0] }
+      return destinations
+  end
 end
