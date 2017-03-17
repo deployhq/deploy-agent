@@ -16,13 +16,6 @@ module DeployAgent
       CertificateManager.new.generate_certificate
     end
 
-    def ensure_configured
-      unless File.file?(CERTIFICATE_PATH)
-        puts 'Deploy agent is not configured. Please run "deploy-agent setup" first.'
-        Process.exit(1)
-      end
-    end
-
     def restart
       stop
       while(is_running?)
@@ -87,6 +80,13 @@ module DeployAgent
     end
 
     private
+
+    def ensure_configured
+      unless File.file?(CERTIFICATE_PATH) && File.file?(ACCESS_PATH)
+        puts 'Deploy agent is not configured. Please run "deploy-agent setup" first.'
+        Process.exit(1)
+      end
+    end
 
     def is_running?
       if pid = pid_from_file

@@ -12,6 +12,11 @@ module DeployAgent
     end
 
     def generate_certificate
+      FileUtils.mkdir_p(CONFIG_PATH)
+      unless File.file?(ACCESS_PATH)
+        File.write(ACCESS_PATH, "# This file contains a list of host and network addresses the Deploy agent\n # will allow connections to. Add IPs or networks (CIDR format) as needed.\n\n# Allow deployments to localhost\n127.0.0.1\n::1\n")
+      end
+
       puts 'This tool will assist you in generating a certificate for your Deploy agent.'
       puts
       if File.file?(CERTIFICATE_PATH)
@@ -51,12 +56,8 @@ module DeployAgent
           response = http.request request
           response_hash = JSON.parse(response.body)
           if response_hash['status'] == 'success'
-            FileUtils.mkdir_p(CONFIG_PATH)
             File.write(CERTIFICATE_PATH, response_hash['data']['certificate'])
             File.write(KEY_PATH,         response_hash['data']['private_key'])
-            unless File.file?(ACCESS_PATH)
-              File.write(ACCESS_PATH, "# This file contains a list of host and network addresses the Deploy agent\n # will allow connections to. Add IPs or networks (CIDR format) as needed.\n\n# Allow deployments to localhost\n127.0.0.1\n::1\n")
-            end
             puts
             puts "Certificate has been successfully generated and installed."
             puts
