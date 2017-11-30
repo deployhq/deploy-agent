@@ -158,6 +158,11 @@ module DeployAgent
       close
     end
 
+    def keepalive
+      @agent.logger.debug "Sending keepalive"
+      send_packet([7].pack('C'))
+    end
+
     private
 
     def close
