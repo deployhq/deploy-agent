@@ -1,0 +1,22 @@
+PATH
+  remote: .
+  specs:
+    deploy-agent (1.0.4)
+      nio4r (= 1.2.1)
+      rb-readline (= 0.5.4)
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    nio4r (1.2.1)
+    rb-readline (0.5.4)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  bundler (~> 1.16)
+  deploy-agent!
+
+BUNDLED WITH
+   1.16.4
