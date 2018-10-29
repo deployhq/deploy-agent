@@ -1,4 +1,4 @@
-require 'deploy_agent/certificate_manager'
+require 'deploy_agent/configuration_generator'
 require 'deploy_agent/server_connection'
 require 'deploy_agent/destination_connection'
 require 'deploy_agent/cli'

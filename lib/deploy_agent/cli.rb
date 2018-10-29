@@ -13,7 +13,7 @@ module DeployAgent
     end
 
     def setup
-      CertificateManager.new.generate_certificate
+      ConfigurationGenerator.new.configure
     end
 
     def restart
