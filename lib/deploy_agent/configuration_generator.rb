@@ -1,4 +1,3 @@
-gem 'rb-readline', '0.5.4'
 require 'readline'
 require 'net/https'
 require 'json'
