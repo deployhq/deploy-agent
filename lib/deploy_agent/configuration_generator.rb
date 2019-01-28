@@ -8,6 +8,7 @@ module DeployAgent
     attr_accessor :claim_code
 
     def configure
+      FileUtils.mkdir_p(CONFIG_PATH)
       if File.file?(CERTIFICATE_PATH) || File.file?(ACCESS_PATH)
         puts "***************************** WARNING *****************************"
         puts "The Deploy agent has already been configured. Are you sure you wish"
