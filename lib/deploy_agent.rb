@@ -3,6 +3,7 @@ require 'deploy_agent/server_connection'
 require 'deploy_agent/destination_connection'
 require 'deploy_agent/cli'
 require 'deploy_agent/agent'
+require 'rubygems'
 
 module DeployAgent
   CONFIG_PATH      = File.expand_path('~/.deploy')
@@ -12,6 +13,7 @@ module DeployAgent
   LOG_PATH         = File.expand_path('~/.deploy/agent.log')
   ACCESS_PATH      = File.expand_path('~/.deploy/agent.access')
   CA_PATH          = File.expand_path('../../ca.crt', __FILE__)
+  VERSION          = Gem::Specification::load("deploy-agent.gemspec").version
 
   def self.allowed_destinations
       destinations = File.read(ACCESS_PATH)

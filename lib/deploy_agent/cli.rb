@@ -89,6 +89,10 @@ module DeployAgent
       puts "To edit the list of allowed servers, please modify " + ACCESS_PATH
     end
 
+    def version
+      puts "You are running version #{VERSION} of the DeployHQ Agent"
+    end
+
     private
 
     def ensure_configured
