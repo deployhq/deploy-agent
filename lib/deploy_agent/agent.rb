@@ -6,6 +6,9 @@ require 'logger'
 
 module DeployAgent
   class Agent
+    def initialize(options = {})
+      @options = options
+    end
 
     def run
       nio_selector = NIO::Selector.new
@@ -30,7 +33,7 @@ module DeployAgent
       @logger ||= begin
         if $background
           logger = Logger.new(LOG_PATH, 5, 10240)
-          logger.level = Logger::INFO
+          logger.level = @options[:verbose] ? Logger::DEBUG : Logger::INFO
           logger
         else
           Logger.new(STDOUT)
@@ -38,5 +41,8 @@ module DeployAgent
       end
     end
 
+    private
+
+    attr_reader :options
   end
 end
