@@ -33,11 +33,11 @@ module DeployAgent
       @logger ||= begin
         if $background
           logger = Logger.new(LOG_PATH, 5, 10240)
-          logger.level = @options[:verbose] ? Logger::DEBUG : Logger::INFO
-          logger
         else
-          Logger.new(STDOUT)
+          logger = Logger.new(STDOUT)
         end
+        logger.level = @options[:verbose] ? Logger::DEBUG : Logger::INFO
+        logger
       end
     end
 
