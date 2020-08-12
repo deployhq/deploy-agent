@@ -54,10 +54,17 @@ module DeployAgent
     # Receive and process packets from the control server
     def rx_data
       # Ensure all received data is read
-      @rx_buffer << @socket.readpartial(10240)
-      while(@socket.pending > 0)
-        @rx_buffer << @socket.readpartial(10240)
+      loop do
+        begin
+          data = @socket.read_nonblock(10240)
+          raise EOFError if data.nil?
+
+          @rx_buffer << data
+        rescue IO::WaitReadable, IO::WaitWritable
+          break # nothing more to read
+        end
       end
+
       # Wait until we have a complete packet of data
       while @rx_buffer.bytesize >=2 && @rx_buffer.bytesize >= @rx_buffer[0,2].unpack('n')[0]
         length = @rx_buffer.slice!(0,2).unpack('n')[0]
