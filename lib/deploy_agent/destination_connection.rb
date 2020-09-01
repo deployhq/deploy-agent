@@ -79,7 +79,7 @@ module DeployAgent
         # Nothing more to send, wait for inbound data only
         @nio_monitor.interests = :r
       end
-    rescue Errno::ECONNRESET
+    rescue Errno::ECONNRESET, Errno::ETIMEDOUT, Errno::ENETRESET
       # The backend has closed the connection. Inform the Deploy server.
       @server_connection.send_connection_close(@id)
       # Ensure everything is tidied up
@@ -91,7 +91,7 @@ module DeployAgent
       data = @tcp_socket.readpartial(10240)
       @agent.logger.debug "[#{@id}] #{data.bytesize} bytes received from destination"
       @server_connection.send_data(@id, data)
-    rescue EOFError, Errno::ECONNRESET
+    rescue EOFError, Errno::ECONNRESET, Errno::ETIMEDOUT, Errno::ENETRESET
       @agent.logger.info "[#{@id}] Destination closed connection"
       # The backend has closed the connection. Inform the Deploy server.
       @server_connection.send_connection_close(@id)

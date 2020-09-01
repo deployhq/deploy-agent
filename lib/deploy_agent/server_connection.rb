@@ -113,7 +113,7 @@ module DeployAgent
           close
         end
       end
-    rescue EOFError, Errno::ECONNRESET
+    rescue EOFError, Errno::ECONNRESET, Errno::ETIMEDOUT, Errno::ENETRESET
       close
     end
 
@@ -161,7 +161,7 @@ module DeployAgent
         # the remaining data in the send buffer
         @tx_buffer.slice!(0, bytes_sent)
       end
-    rescue EOFError, Errno::ECONNRESET
+    rescue EOFError, Errno::ECONNRESET, Errno::ETIMEDOUT, Errno::ENETRESET
       close
     end
 

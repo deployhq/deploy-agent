@@ -27,6 +27,11 @@ module DeployAgent
       end
     rescue ServerConnection::ServerDisconnected
       retry
+    rescue Interrupt, SignalException => e
+      logger.info("Stopping")
+    rescue Exception => e
+      logger.debug("#{e.class}: #{e.message}")
+      raise e
     end
 
     def logger
