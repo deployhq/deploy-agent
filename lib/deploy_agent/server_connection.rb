@@ -151,7 +151,9 @@ module DeployAgent
 
     # Called by event loop to send all waiting packets to the Deploy server
     def tx_data
+      @agent.logger.debug('Writing to socket')
       bytes_sent = @socket.write_nonblock(@tx_buffer[0,1024])
+      @agent.logger.debug('Writing to socket completed')
       # Send as much data as possible
       if bytes_sent >= @tx_buffer.bytesize
         @tx_buffer = String.new.force_encoding('BINARY')
