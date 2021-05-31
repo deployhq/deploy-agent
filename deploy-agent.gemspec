@@ -1,8 +1,8 @@
 Gem::Specification.new do |s|
   s.name        = 'deploy-agent'
-  s.version     = '1.2.1'
-  s.summary     = "The Deploy agent"
-  s.description = "This gem allows you to configure a secure proxy through which Deploy can forward connections"
+  s.version     = '1.2.3'
+  s.summary     = "The DeployHQ Agent"
+  s.description = "This gem allows you to configure a secure proxy through which DeployHQ can forward connections"
   s.authors     = ["aTech Media"]
   s.email       = ["support@deployhq.com"]
   s.files       = Dir.glob("{lib,bin}/**/*")

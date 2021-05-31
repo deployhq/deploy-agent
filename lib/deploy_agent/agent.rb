@@ -6,6 +6,9 @@ require 'logger'
 
 module DeployAgent
   class Agent
+    def initialize(options = {})
+      @options = options
+    end
 
     def run
       nio_selector = NIO::Selector.new
@@ -24,19 +27,27 @@ module DeployAgent
       end
     rescue ServerConnection::ServerDisconnected
       retry
+    rescue Interrupt, SignalException => e
+      logger.info("Stopping")
+    rescue Exception => e
+      logger.debug("#{e.class}: #{e.message}")
+      raise e
     end
 
     def logger
       @logger ||= begin
         if $background
           logger = Logger.new(LOG_PATH, 5, 10240)
-          logger.level = Logger::INFO
-          logger
         else
-          Logger.new(STDOUT)
+          logger = Logger.new(STDOUT)
         end
+        logger.level = @options[:verbose] ? Logger::DEBUG : Logger::INFO
+        logger
       end
     end
 
+    private
+
+    attr_reader :options
   end
 end

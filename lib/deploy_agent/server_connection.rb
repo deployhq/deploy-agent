@@ -54,10 +54,17 @@ module DeployAgent
     # Receive and process packets from the control server
     def rx_data
       # Ensure all received data is read
-      @rx_buffer << @socket.readpartial(10240)
-      while(@socket.pending > 0)
-        @rx_buffer << @socket.readpartial(10240)
+      loop do
+        begin
+          data = @socket.read_nonblock(10240)
+          raise EOFError if data.nil?
+
+          @rx_buffer << data
+        rescue IO::WaitReadable, IO::WaitWritable
+          break # nothing more to read
+        end
       end
+
       # Wait until we have a complete packet of data
       while @rx_buffer.bytesize >=2 && @rx_buffer.bytesize >= @rx_buffer[0,2].unpack('n')[0]
         length = @rx_buffer.slice!(0,2).unpack('n')[0]
@@ -106,7 +113,7 @@ module DeployAgent
           close
         end
       end
-    rescue EOFError, Errno::ECONNRESET
+    rescue EOFError, Errno::ECONNRESET, Errno::ETIMEDOUT, Errno::ENETRESET
       close
     end
 
@@ -144,7 +151,9 @@ module DeployAgent
 
     # Called by event loop to send all waiting packets to the Deploy server
     def tx_data
+      @agent.logger.debug('Writing to socket')
       bytes_sent = @socket.write_nonblock(@tx_buffer[0,1024])
+      @agent.logger.debug('Writing to socket completed')
       # Send as much data as possible
       if bytes_sent >= @tx_buffer.bytesize
         @tx_buffer = String.new.force_encoding('BINARY')
@@ -154,7 +163,7 @@ module DeployAgent
         # the remaining data in the send buffer
         @tx_buffer.slice!(0, bytes_sent)
       end
-    rescue EOFError, Errno::ECONNRESET
+    rescue EOFError, Errno::ECONNRESET, Errno::ETIMEDOUT, Errno::ENETRESET
       close
     end
 

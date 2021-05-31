@@ -1,10 +1,20 @@
 require 'ipaddr'
+require 'optparse'
 
 module DeployAgent
   class CLI
 
     def dispatch(arguments)
       methods = self.public_methods(false).delete_if { |n| n == :dispatch }.sort
+
+      @options = {}
+
+      OptionParser.new do |opts|
+        opts.on('-v', '--verbose', 'Log extra debug information') do
+          @options[:verbose] = true
+        end
+      end.parse!
+
       if arguments[0] && methods.include?(arguments[0].to_sym)
         public_send(arguments[0])
       else
@@ -62,7 +72,7 @@ module DeployAgent
 
     def run
       ensure_configured
-      Agent.new.run
+      Agent.new(@options).run
     end
 
     def accesslist
@@ -77,6 +87,10 @@ module DeployAgent
       end
       puts
       puts "To edit the list of allowed servers, please modify " + ACCESS_PATH
+    end
+
+    def version
+      puts "You are running version 1.2.3 of the DeployHQ Agent"
     end
 
     private
