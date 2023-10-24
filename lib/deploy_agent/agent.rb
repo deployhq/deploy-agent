@@ -7,6 +7,7 @@ require 'logger'
 module DeployAgent
   class Agent
     def initialize(options = {})
+      @retries = 0
       @options = options
     end
 
@@ -24,6 +25,16 @@ module DeployAgent
           monitor.value.tx_data if monitor.writeable?
         end
         timers.fire
+
+        @retries = 0
+      end
+    rescue OpenSSL::SSL::SSLError => e
+      @retries += 1
+
+      if @retries == 4
+        raise e
+      else
+        retry
       end
     rescue ServerConnection::ServerDisconnected
       retry
