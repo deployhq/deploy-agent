@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.3.2](https://github.com/krystal/deploy-agent/compare/v1.3.1...v1.3.2) (2023-10-25)
+
+
+### Miscellaneous Chores
+
+* adds rubocop ([744754a](https://github.com/krystal/deploy-agent/commit/744754a85eebf2205d0082e8b6b16f6e5f687119))
+* adds rubocop gem ([f0b66b8](https://github.com/krystal/deploy-agent/commit/f0b66b80dade3ed36e39c6c36ecff9127acec81d))
+
 ## [1.3.1](https://github.com/krystal/deploy-agent/compare/v1.3.0...v1.3.1) (2023-10-25)
 
 
