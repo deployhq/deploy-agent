@@ -2,3 +2,6 @@
 */*.pem
 server/psk
 *.gem
+.ruby-version
+.idea
+Gemfile.lock

@@ -90,7 +90,7 @@ module DeployAgent
     end
 
     def version
-      puts "You are running version 1.2.3 of the DeployHQ Agent"
+      puts DeployAgent::VERSION
     end
 
     private
