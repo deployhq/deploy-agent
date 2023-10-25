@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.3.1](https://github.com/krystal/deploy-agent/compare/v1.3.0...v1.3.1) (2023-10-25)
+
+
+### Miscellaneous Chores
+
+* **master:** release 1.3.0 ([#6](https://github.com/krystal/deploy-agent/issues/6)) ([db057c1](https://github.com/krystal/deploy-agent/commit/db057c1afa4eb6558d164191abaceb4155da2515))
+* release 1.3.0 ([b259ce9](https://github.com/krystal/deploy-agent/commit/b259ce9a7c39e53c9901bf01e9cb78ff62390d4f))
+* release 1.3.1 ([9e982ee](https://github.com/krystal/deploy-agent/commit/9e982ee2f26a0d4ce9fbcfdc80f3b2d8f13ebbe0))
+
 ## [1.3.0](https://github.com/krystal/deploy-agent/compare/v1.3.0...v1.3.0) (2023-10-25)
 
 
