@@ -12,6 +12,7 @@ module DeployAgent
     end
 
     def run
+      logger.info("Running the deploy agent")
       nio_selector = NIO::Selector.new
       timers = Timers::Group.new
       target = ENV['DEPLOY_AGENT_PROXY_IP'] || 'agent.deployhq.com'

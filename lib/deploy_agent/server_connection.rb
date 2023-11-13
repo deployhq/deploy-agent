@@ -40,7 +40,7 @@ module DeployAgent
       @nio_monitor = @nio_selector.register(@tcp_socket, :r)
       @nio_monitor.value = self
 
-      @agent.logger.info "Successfully connected to server"
+      @agent.logger.info "[#{ctx.serial}:] Successfully connected to server"
     rescue => e
       @agent.logger.info "Something went wrong connecting to server."
       # Sleep between 10 and 20 seconds
