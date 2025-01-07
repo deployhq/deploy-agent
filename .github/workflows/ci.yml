@@ -21,11 +21,8 @@ jobs:
       release_created: ${{ steps.release-please.outputs.release_created }}
       version: ${{ steps.release-please.outputs.version }}
     steps:
-      - uses: krystal/release-please-manifest-action@v1
+      - uses: googleapis/release-please-action@v4
         id: release-please
-        with:
-          app-id: ${{ vars.RELEASE_PLEASE_GITHUB_APP_ID }}
-          private-key: ${{ secrets.RELEASE_PLEASE_GITHUB_APP_PRIVATE_KEY }}
 
   release:
     runs-on: ubuntu-latest
