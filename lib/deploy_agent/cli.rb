@@ -123,7 +123,7 @@ module DeployAgent
 
     def write_pid
       File.open(PID_PATH, 'w') { |f| f.write Process.pid.to_s }
-      at_exit { File.delete(PID_PATH) if File.exists?(PID_PATH) }
+      at_exit { File.delete(PID_PATH) if File.exist?(PID_PATH) }
     end
 
   end
