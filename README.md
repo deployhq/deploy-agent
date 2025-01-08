@@ -25,3 +25,13 @@ Start agent in background
 ```
 $ deploy-agent start
 ```
+
+## Release
+
+This project uses [Google's release-please](https://github.com/googleapis/release-please) action which automates CHANGELOG generation, the creation of GitHub releases, and version bumps.
+
+**Commit messages are important!**
+
+`release-please` assumes that you are following the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) specification. 
+This means that your commit messages should be structured in a way that release-please can determine the type of change that has been made.
+Please refer to the ["How should I write my commits"](https://github.com/googleapis/release-please?tab=readme-ov-file#how-should-i-write-my-commits) documentation.
