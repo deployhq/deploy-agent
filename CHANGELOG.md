@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.3.3](https://github.com/deployhq/deploy-agent/compare/v1.3.2...v1.3.3) (2025-01-08)
+
+
+### Bug Fixes
+
+* Fix release-please configuration. ([5373d31](https://github.com/deployhq/deploy-agent/commit/5373d31df31928997213e7e883ddd899a6d7d6c3))
+* Fix rubocop offenses. ([5d7ba4f](https://github.com/deployhq/deploy-agent/commit/5d7ba4fa3d422d8ff4bfa57ba3d6034c787abe7f))
+* Replace deprecated `File.exists?` method. ([2b65cf1](https://github.com/deployhq/deploy-agent/commit/2b65cf1b14be81a36ecc6ef8a7c2ec1d94186298))
+
+
+### Documentation
+
+* Improve README with Release instructions. ([73cfc3b](https://github.com/deployhq/deploy-agent/commit/73cfc3b9e7f9c38b4cfd986a60881f05cb22ca74))
+
 ## [1.3.2](https://github.com/krystal/deploy-agent/compare/v1.3.1...v1.3.2) (2023-10-25)
 
 
