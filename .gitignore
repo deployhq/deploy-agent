@@ -5,3 +5,7 @@ server/psk
 .ruby-version
 .idea
 Gemfile.lock
+
+# Test artifacts
+spec/examples.txt
+coverage/
