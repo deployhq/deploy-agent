@@ -3,6 +3,7 @@ AllCops:
   NewCops: enable
   Exclude:
     - lib/**/*
+    - vendor/**/*
 
 Metrics/BlockLength:
   Exclude:
