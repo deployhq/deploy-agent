@@ -115,7 +115,7 @@ This project uses [release-please](https://github.com/googleapis/release-please)
 - `!` or `BREAKING CHANGE:` major versions (x.0.0)
 
 Example commit messages:
-```
+```text
 fix: Prevent connection leak on destination timeout
 feat: Add support for IPv6 destinations
 feat!: Change default server port to 7778
