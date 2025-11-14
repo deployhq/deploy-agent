@@ -13,7 +13,7 @@ module DeployAgent
         opts.on('-v', '--verbose', 'Log extra debug information') do
           @options[:verbose] = true
         end
-      end.parse!
+      end.parse!(arguments)
 
       if arguments[0] && methods.include?(arguments[0].to_sym)
         public_send(arguments[0])
