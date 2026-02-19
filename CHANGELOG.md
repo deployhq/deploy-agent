@@ -1,5 +1,26 @@
 # Changelog
 
+## [1.4.0](https://github.com/deployhq/deploy-agent/compare/v1.3.3...v1.4.0) (2026-02-19)
+
+
+### Features
+
+* Add RSpec test suite and multi-version Ruby CI support ([fd1d1ab](https://github.com/deployhq/deploy-agent/commit/fd1d1abbae368fdb209ba10f0e9e2014b550ccb8))
+* Add RSpec test suite and multi-version Ruby CI support ([bd59b61](https://github.com/deployhq/deploy-agent/commit/bd59b61a5dd1372a8abd71f6029a37412a21e60b))
+
+
+### Bug Fixes
+
+* Exclude vendor directory from RuboCop inspection ([b12a7cb](https://github.com/deployhq/deploy-agent/commit/b12a7cbb270e631e8efb266f05372fe430bb25d3))
+* Remove redundant gem activation calls from agent.rb ([e0e3bf4](https://github.com/deployhq/deploy-agent/commit/e0e3bf45780aa0d58a9d73f151b0c41f920687be))
+* Update dependencies to support GCC 14 / Debian 13 ([6a75ad0](https://github.com/deployhq/deploy-agent/commit/6a75ad03964cad66ad463b7a5906bd323870ebfc))
+* Update nio4r, timers, and rb-readline to support modern compilers ([0e050a5](https://github.com/deployhq/deploy-agent/commit/0e050a587e59a8a2a6d8f518570fe09d5613a798))
+
+
+### Documentation
+
+* Add language identifier to code block in CLAUDE.md ([369fe90](https://github.com/deployhq/deploy-agent/commit/369fe90eeabf5438c1a591e2d24568740f4fbcf4))
+
 ## [1.3.3](https://github.com/deployhq/deploy-agent/compare/v1.3.2...v1.3.3) (2025-01-08)
 
 
