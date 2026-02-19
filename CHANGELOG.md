@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.4.1](https://github.com/deployhq/deploy-agent/compare/v1.4.0...v1.4.1) (2026-02-19)
+
+
+### Bug Fixes
+
+* Use version.rb for gem versioning with release-please ([505e2cf](https://github.com/deployhq/deploy-agent/commit/505e2cf6b41466b01f66dea3f694ee32cab9774c))
+* Use version.rb for gem versioning with release-please integration ([b52173a](https://github.com/deployhq/deploy-agent/commit/b52173a5c82aa46679d064579374871793931ac7))
+
 ## [1.4.0](https://github.com/deployhq/deploy-agent/compare/v1.3.3...v1.4.0) (2026-02-19)
 
 
