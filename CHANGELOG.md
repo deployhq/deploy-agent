@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.4.2](https://github.com/deployhq/deploy-agent/compare/v1.4.1...v1.4.2) (2026-02-19)
+
+
+### Documentation
+
+* Add HTTPS setup endpoint to firewall requirements ([60a6f16](https://github.com/deployhq/deploy-agent/commit/60a6f16b7fcf76f497615b88a2142b7b008b50c0))
+* Add language identifier to access list code block ([0c9fc0b](https://github.com/deployhq/deploy-agent/commit/0c9fc0bf96bde5409c583ff19fe030ac054182d5))
+* Add language identifier to ASCII diagram code block ([13c8c7c](https://github.com/deployhq/deploy-agent/commit/13c8c7c370244ac7958567486a253725ab33833b))
+* Rewrite README with architecture diagram and examples ([2430cc6](https://github.com/deployhq/deploy-agent/commit/2430cc60369cce65155387dd4700924fdb255077))
+* Rewrite README with architecture diagram, examples, and troubleshooting ([6b2b850](https://github.com/deployhq/deploy-agent/commit/6b2b85035ea6bbbab90b3d773627af0f0b3c0396))
+
 ## [1.4.1](https://github.com/deployhq/deploy-agent/compare/v1.4.0...v1.4.1) (2026-02-19)
 
 
