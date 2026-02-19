@@ -4,7 +4,7 @@ A secure proxy that allows [DeployHQ](https://www.deployhq.com/) to forward conn
 
 ## How It Works
 
-```
+```text
 ┌──────────┐       TLS (port 7777)       ┌─────────────┐        ┌─────────────────┐
 │ DeployHQ │ ◄──────────────────────────► │ Deploy Agent │ ──────► │ Your Server(s)  │
 └──────────┘   mutual authentication     └─────────────┘  proxy  └─────────────────┘
