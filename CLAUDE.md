@@ -121,6 +121,12 @@ feat: Add support for IPv6 destinations
 feat!: Change default server port to 7778
 ```
 
+### Versioning
+
+The gem version is defined in `lib/deploy_agent/version.rb` as `DeployAgent::VERSION`. The gemspec reads from this constant via `require_relative`. Release-please is configured (via `version-file` in `release-please-config.json`) to automatically bump the version in this file when creating release PRs.
+
+**Do not hardcode the version in `deploy-agent.gemspec`** — it must always reference `DeployAgent::VERSION`.
+
 ## Code Style
 
 Ruby 2.7+ syntax required. RuboCop configured with:

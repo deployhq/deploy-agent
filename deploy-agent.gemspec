@@ -1,8 +1,10 @@
 # frozen_string_literal: true
 
+require_relative 'lib/deploy_agent/version'
+
 Gem::Specification.new do |s|
   s.name        = 'deploy-agent'
-  s.version     = '1.3.3'
+  s.version     = DeployAgent::VERSION
   s.required_ruby_version = '>= 2.7'
   s.summary     = 'The DeployHQ Agent'
   s.description = 'This gem allows you to configure a secure proxy through which DeployHQ can forward connections'
