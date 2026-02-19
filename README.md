@@ -95,7 +95,7 @@ All configuration is stored in `~/.deploy/`:
 
 To allow the agent to connect to additional servers, edit `~/.deploy/agent.access`:
 
-```
+```text
 # Allow deployments to localhost
 127.0.0.1
 ::1
