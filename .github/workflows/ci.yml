@@ -54,8 +54,6 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: 3.4.1
-      - name: Export version from tag name
-        run: echo "${{ needs.release-please.outputs.version }}" > VERSION
       - name: Build Gem
         run: gem build *.gemspec
       - name: Setup credentials
