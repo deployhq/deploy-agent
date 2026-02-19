@@ -16,7 +16,8 @@ The agent connects **outbound** to DeployHQ, so no inbound firewall rules are ne
 ## Requirements
 
 - Ruby 2.7 or later
-- Outbound access to DeployHQ on port 7777
+- Outbound HTTPS access to `api.deployhq.com` (port 443) for initial setup
+- Outbound TCP access to `agent.deployhq.com` (port 7777) for agent operation
 
 ## Installation
 
