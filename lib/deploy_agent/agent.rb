@@ -1,5 +1,3 @@
-gem 'nio4r', '~> 2.7'
-gem 'timers', '~> 4.3'
 require 'nio'
 require 'timers'
 require 'logger'
