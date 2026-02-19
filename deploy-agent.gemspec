@@ -15,7 +15,7 @@ Gem::Specification.new do |s|
   s.bindir      = 'bin'
   s.executables << 'deploy-agent'
 
-  s.add_dependency 'nio4r', '2.1.0'
-  s.add_dependency 'rb-readline', '0.5.5'
-  s.add_dependency 'timers', '4.1.2'
+  s.add_dependency 'nio4r', '~> 2.7'
+  s.add_dependency 'rb-readline', '~> 0.5'
+  s.add_dependency 'timers', '~> 4.3'
 end
