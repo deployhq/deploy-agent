@@ -7,7 +7,8 @@ Gem::Specification.new do |s|
   s.version     = DeployAgent::VERSION
   s.required_ruby_version = '>= 2.7'
   s.summary     = 'The DeployHQ Agent'
-  s.description = 'Deprecated: use https://github.com/deployhq/network-agent instead. This gem allows you to configure a secure proxy through which DeployHQ can forward connections'
+  s.description = 'Deprecated: use https://github.com/deployhq/network-agent instead. ' \
+                  'This gem allows you to configure a secure proxy through which DeployHQ can forward connections'
   s.authors     = ['Charlie Smurthwaite']
   s.email       = ['support@deployhq.com']
   s.files       = Dir.glob('{lib,bin}/**/*')
