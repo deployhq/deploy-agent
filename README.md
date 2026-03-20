@@ -1,5 +1,7 @@
 # Deploy Agent
 
+> **Notice:** This repository is being archived. Please use [network-agent](https://github.com/deployhq/network-agent) instead — it has fewer dependencies and is easier to install.
+
 A secure proxy that allows [DeployHQ](https://www.deployhq.com/) to forward connections to servers behind firewalls. The agent establishes an outbound TLS connection to DeployHQ's servers and proxies deployment traffic to allowed destinations based on an IP/network allowlist.
 
 ## How It Works

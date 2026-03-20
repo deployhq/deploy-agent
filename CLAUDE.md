@@ -4,6 +4,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
+> **Notice:** This repository is being archived in favour of [network-agent](https://github.com/deployhq/network-agent), which has fewer dependencies and is easier to install. Both are functional during the transition period.
+
 Deploy Agent is a Ruby gem that creates a secure proxy allowing DeployHQ to forward connections to protected servers. It establishes a TLS connection to DeployHQ's servers and proxies connections to allowed destinations based on an IP/network allowlist.
 
 ## Development Commands
