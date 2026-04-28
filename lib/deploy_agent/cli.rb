@@ -4,7 +4,20 @@ require 'optparse'
 module DeployAgent
   class CLI
 
+    DEPRECATION_NOTICE = <<~MSG
+      \e[33m╔══════════════════════════════════════════════════════════════════╗
+      ║  DEPRECATED: deploy-agent will not receive further updates.      ║
+      ║  Please migrate to the new agent:                                ║
+      ║                                                                  ║
+      ║    https://github.com/deployhq/network-agent                     ║
+      ║                                                                  ║
+      ║  Fewer dependencies, easier to install.                          ║
+      ╚══════════════════════════════════════════════════════════════════╝\e[0m
+    MSG
+
     def dispatch(arguments)
+      warn DEPRECATION_NOTICE
+
       methods = self.public_methods(false).delete_if { |n| n == :dispatch }.sort
 
       @options = {}

@@ -7,7 +7,8 @@ Gem::Specification.new do |s|
   s.version     = DeployAgent::VERSION
   s.required_ruby_version = '>= 2.7'
   s.summary     = 'The DeployHQ Agent'
-  s.description = 'This gem allows you to configure a secure proxy through which DeployHQ can forward connections'
+  s.description = 'Deprecated: use https://github.com/deployhq/network-agent instead. ' \
+                  'This gem allows you to configure a secure proxy through which DeployHQ can forward connections'
   s.authors     = ['Charlie Smurthwaite']
   s.email       = ['support@deployhq.com']
   s.files       = Dir.glob('{lib,bin}/**/*')
@@ -20,4 +21,9 @@ Gem::Specification.new do |s|
   s.add_dependency 'nio4r', '~> 2.7'
   s.add_dependency 'rb-readline', '~> 0.5'
   s.add_dependency 'timers', '~> 4.3'
+
+  s.post_install_message = <<~MSG
+    WARNING: deploy-agent is deprecated and will not receive further updates.
+    Please migrate to the new agent: https://github.com/deployhq/network-agent
+  MSG
 end
