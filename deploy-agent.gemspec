@@ -21,4 +21,9 @@ Gem::Specification.new do |s|
   s.add_dependency 'nio4r', '~> 2.7'
   s.add_dependency 'rb-readline', '~> 0.5'
   s.add_dependency 'timers', '~> 4.3'
+
+  s.post_install_message = <<~MSG
+    WARNING: deploy-agent is deprecated and will not receive further updates.
+    Please migrate to the new agent: https://github.com/deployhq/network-agent
+  MSG
 end
