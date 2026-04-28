@@ -1,5 +1,28 @@
 # Changelog
 
+## [1.4.2](https://github.com/deployhq/deploy-agent/compare/v1.4.1...v1.4.2) (2026-04-28)
+
+
+### Bug Fixes
+
+* Fix line length offense in gemspec ([7e9c7b4](https://github.com/deployhq/deploy-agent/commit/7e9c7b4e55ad255f624dbe7a713ba907895e7873))
+
+
+### Documentation
+
+* Add deprecation notice pointing to network-agent ([265f502](https://github.com/deployhq/deploy-agent/commit/265f50226184dc9eb2ed0d1dc36fbb2240a30c5c))
+* Add HTTPS setup endpoint to firewall requirements ([60a6f16](https://github.com/deployhq/deploy-agent/commit/60a6f16b7fcf76f497615b88a2142b7b008b50c0))
+* Add language identifier to access list code block ([0c9fc0b](https://github.com/deployhq/deploy-agent/commit/0c9fc0bf96bde5409c583ff19fe030ac054182d5))
+* Add language identifier to ASCII diagram code block ([13c8c7c](https://github.com/deployhq/deploy-agent/commit/13c8c7c370244ac7958567486a253725ab33833b))
+* Rewrite README with architecture diagram and examples ([2430cc6](https://github.com/deployhq/deploy-agent/commit/2430cc60369cce65155387dd4700924fdb255077))
+* Rewrite README with architecture diagram, examples, and troubleshooting ([6b2b850](https://github.com/deployhq/deploy-agent/commit/6b2b85035ea6bbbab90b3d773627af0f0b3c0396))
+
+
+### Miscellaneous Chores
+
+* Deprecate deploy-agent in favor of network-agent ([fc465cd](https://github.com/deployhq/deploy-agent/commit/fc465cd02a7224f63339cd935cc943a64c493ac0))
+* Deprecate gem with post-install and runtime warnings ([6757da9](https://github.com/deployhq/deploy-agent/commit/6757da919a30ac06cf25b20877e35cd42a995851))
+
 ## [1.4.1](https://github.com/deployhq/deploy-agent/compare/v1.4.0...v1.4.1) (2026-02-19)
 
 
