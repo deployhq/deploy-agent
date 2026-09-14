@@ -26,9 +26,19 @@ RSpec.describe 'the bundled CA file' do
     expect { store.add_file(DeployAgent::CA_PATH) }.not_to raise_error
   end
 
-  it 'contains only self-signed roots' do
+  # A valid self-signature proves the key matches, but says nothing about what
+  # the certificate is allowed to be. A trust anchor here must also be issued to
+  # itself and actually assert CA:TRUE, or it cannot sign the agent and server
+  # certificates this file exists to verify.
+  it 'contains only self-signed certificate authorities' do
     certificates.each do |certificate|
-      expect(certificate.verify(certificate.public_key)).to be(true), "#{certificate.subject} is not self-signed"
+      subject = certificate.subject.to_s
+      basic_constraints = certificate.extensions.find { |extension| extension.oid == 'basicConstraints' }&.value
+
+      expect(certificate.issuer.to_s).to eq(subject), "#{subject} is not issued to itself"
+      expect(certificate.verify(certificate.public_key)).to be(true), "#{subject} is not self-signed"
+      expect(basic_constraints).to include('CA:TRUE'),
+                                   "#{subject} is not marked as a CA (basicConstraints=#{basic_constraints.inspect})"
     end
   end
 
