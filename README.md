@@ -31,6 +31,18 @@ The agent connects **outbound** to DeployHQ, so no inbound firewall rules are ne
 gem install deploy-agent
 ```
 
+## Upgrading
+
+```bash
+gem install deploy-agent
+deploy-agent restart
+```
+
+Use `gem install`, not `gem update`. On Ruby versions below 3.1 a released gem
+could not have its dependencies resolved, and `gem update deploy-agent` responds
+to that by reporting `Gems already up-to-date` and installing nothing. `gem
+install` resolves from scratch and picks up the fix.
+
 ## Quick Start
 
 ### 1. Configure the agent
@@ -113,6 +125,25 @@ To allow the agent to connect to additional servers, edit `~/.deploy/agent.acces
 ```
 
 Lines starting with `#` are comments. Each entry can be an individual IP address or a CIDR network range.
+
+## Certificate renewal
+
+DeployHQ is rotating the certificate authority behind the agent connection. Each
+time the agent connects it asks whether a replacement client certificate is
+waiting for it, and installs one if DeployHQ offers it.
+
+This is automatic and needs no action from you. The agent keeps its identity —
+same name, same configured servers, nothing to re-claim — and simply reconnects
+once using the new certificate.
+
+A replacement is only written after it has been checked against the agent's
+existing private key and the certificate authorities the agent ships with. If
+any check fails, the agent logs a warning, keeps the certificate it already has
+and carries on. Run `deploy-agent run -v` to watch this happen.
+
+What matters on your side is staying up to date: an agent still presenting a
+certificate issued by the old authority after **17 March 2027** will not be able
+to connect. See [Upgrading](#upgrading).
 
 ## Troubleshooting
 
