@@ -40,7 +40,8 @@ module CertificateRenewalFixtures
   end
 
   # Mirrors deployhq's Agent#generate_crypto: no extensions, serial = agent id.
-  def agent_certificate(authority_name, public_key, serial: 42, common_name: 'Deploy Agent #42')
+  # +extensions+ is only used to build the certificates a renewal must refuse.
+  def agent_certificate(authority_name, public_key, serial: 42, common_name: 'Deploy Agent #42', extensions: [])
     certificate = OpenSSL::X509::Certificate.new
     certificate.not_before = Time.now - 60
     certificate.not_after = Time.now + TEN_YEARS
@@ -49,8 +50,20 @@ module CertificateRenewalFixtures
     certificate.version = 2
     certificate.public_key = public_key
     certificate.issuer = authority(authority_name).subject
+    add_extensions(certificate, authority_name, extensions)
     certificate.sign(key("ca_#{authority_name}"), OpenSSL::Digest.new('SHA256'))
     certificate
+  end
+
+  def add_extensions(certificate, authority_name, extensions)
+    return if extensions.empty?
+
+    factory = OpenSSL::X509::ExtensionFactory.new
+    factory.subject_certificate = certificate
+    factory.issuer_certificate = authority(authority_name)
+    extensions.each do |oid, value, critical|
+      certificate.add_extension(factory.create_extension(oid, value, critical))
+    end
   end
 
   def cache
@@ -100,6 +113,20 @@ RSpec.describe DeployAgent::CertificateRenewal do
     context 'with a certificate re-signed under the new CA' do
       it 'returns the installed certificate' do
         expect(renewal.install(renewed_certificate.to_pem).to_der).to eq(renewed_certificate.to_der)
+      end
+
+      # Real agent certificates carry no extensions at all, so the client-auth
+      # purpose the trust store is pinned to must not reject them.
+      it 'accepts a certificate with no extensions, which is what the backend issues' do
+        expect(renewed_certificate.extensions).to be_empty
+        expect(renewal.install(renewed_certificate.to_pem)).not_to be_nil
+      end
+
+      it 'accepts a certificate that explicitly allows client authentication' do
+        offered = fixtures.agent_certificate('new', agent_key.public_key,
+                                             extensions: [['extendedKeyUsage', 'clientAuth', false]])
+
+        expect(renewal.install(offered.to_pem)).not_to be_nil
       end
 
       it 'writes it to the certificate path' do
@@ -203,7 +230,29 @@ RSpec.describe DeployAgent::CertificateRenewal do
     context 'when the issuer is not in the bundled CA file' do
       let(:offered_pem) { fixtures.agent_certificate('rogue', agent_key.public_key).to_pem }
 
-      include_examples 'a rejected renewal', /does not chain to a trusted CA/
+      include_examples 'a rejected renewal', /not a usable client certificate/
+    end
+
+    # These chain to the trusted new CA and keep subject, serial and public key,
+    # so they clear every other check. Only the trust store's client-auth purpose
+    # catches them - and if it did not, the agent would install a certificate the
+    # server then refuses on every single reconnect.
+    context 'when the extended key usage rules out client authentication' do
+      let(:offered_pem) do
+        fixtures.agent_certificate('new', agent_key.public_key,
+                                   extensions: [['extendedKeyUsage', 'serverAuth', true]]).to_pem
+      end
+
+      include_examples 'a rejected renewal', /not a usable client certificate/
+    end
+
+    context 'when the key usage rules out client authentication' do
+      let(:offered_pem) do
+        fixtures.agent_certificate('new', agent_key.public_key,
+                                   extensions: [['keyUsage', 'keyEncipherment', true]]).to_pem
+      end
+
+      include_examples 'a rejected renewal', /not a usable client certificate/
     end
 
     context 'when the payload is not a certificate' do

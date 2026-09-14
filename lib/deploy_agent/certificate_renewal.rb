@@ -71,12 +71,13 @@ module DeployAgent
               "offered certificate has a different serial (#{current_certificate.serial} -> #{new_certificate.serial})"
       end
 
-      # And it has to chain to a CA we ship, or we would be trading a working
-      # certificate for one the server will refuse on the next handshake.
+      # And it has to chain to a CA we ship *as a TLS client certificate*, or we
+      # would be trading a working certificate for one the server refuses on the
+      # next handshake - and every handshake after it.
       store = certificate_store
       return if store.verify(new_certificate)
 
-      raise InvalidCertificate, "offered certificate does not chain to a trusted CA (#{store.error_string})"
+      raise InvalidCertificate, "offered certificate is not a usable client certificate (#{store.error_string})"
     end
 
     # Write to a private temporary file in the same directory, flush it all the
@@ -116,7 +117,17 @@ module DeployAgent
     end
 
     def certificate_store
-      @certificate_store ||= OpenSSL::X509::Store.new.tap { |store| store.add_file(@ca_path) }
+      @certificate_store ||= OpenSSL::X509::Store.new.tap do |store|
+        store.add_file(@ca_path)
+        # The agent presents this certificate for TLS client authentication, so
+        # verify it for that purpose rather than the store's default, which
+        # accepts anything that merely chains. Real agent certificates carry no
+        # extensions at all and this purpose accepts them; what it rejects is a
+        # certificate whose keyUsage or extendedKeyUsage rules client auth out
+        # (a serverAuth-only certificate, say), which would otherwise install
+        # cleanly and then be refused by the server on every reconnect.
+        store.purpose = OpenSSL::X509::PURPOSE_SSL_CLIENT
+      end
     rescue SystemCallError, OpenSSL::OpenSSLError => e
       raise InvalidCertificate, "could not read the CA bundle: #{e.message}"
     end
