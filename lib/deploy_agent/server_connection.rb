@@ -9,6 +9,17 @@ module DeployAgent
     attr_reader :destination_connections, :agent
     attr_writer :nio_monitor
 
+    # Tunnel commands. 1-7 are the original proxy protocol. 8 and 9 were added
+    # for in-band certificate renewal and are implemented identically in the Go
+    # agent (network-agent) and in the backend.
+    COMMAND_RENEW_REQUEST  = 8 # agent -> server, payload "ruby/<version>"
+    COMMAND_RENEW_RESPONSE = 9 # server -> agent, payload [status:1][body]
+
+    # COMMAND_RENEW_RESPONSE statuses
+    RENEW_STATUS_RENEWED = 0 # body is the replacement certificate, PEM encoded
+    RENEW_STATUS_CURRENT = 1 # no body, the certificate we hold is current
+    RENEW_STATUS_ERROR   = 2 # body is a UTF-8 message
+
     # Create a secure TLS connection to the Deploy server
     def initialize(agent, server_host, nio_selector, check_certificate=true)
       @agent = agent
@@ -39,6 +50,12 @@ module DeployAgent
 
       @nio_monitor = @nio_selector.register(@tcp_socket, :r)
       @nio_monitor.value = self
+
+      # Ask the server whether a replacement certificate is waiting for us. The
+      # server decides and answers with COMMAND_RENEW_RESPONSE; it never sends one
+      # unsolicited. This has to come after the monitor exists because send_packet
+      # arms it for writing.
+      request_certificate_renewal
 
       @agent.logger.info "Successfully connected to server"
     rescue => e
@@ -111,6 +128,9 @@ module DeployAgent
           # This is a shutdown request. Disconnect and don't re-attempt connection.
           @agent.logger.warn "Server requested reconnect. Closing connection."
           close
+        when COMMAND_RENEW_RESPONSE
+          # The server has answered our renewal request.
+          handle_renewal_response(packet[1..-1])
         end
       end
     rescue EOFError, Errno::ECONNRESET, Errno::ETIMEDOUT, Errno::ENETRESET
@@ -181,6 +201,48 @@ module DeployAgent
       @socket.close
       @tcp_socket.close
       raise ServerDisconnected
+    end
+
+    # Ask the server to re-issue our client certificate, telling it which agent
+    # implementation and version is asking. Renewal is best effort: it must never
+    # stop us connecting, so a failure here is logged and otherwise ignored.
+    def request_certificate_renewal
+      @agent.logger.debug "Requesting certificate renewal"
+      send_packet([COMMAND_RENEW_REQUEST, "ruby/#{DeployAgent::VERSION}"].pack('Ca*'))
+    rescue => e
+      @agent.logger.warn "Could not request certificate renewal: #{e.message}"
+    end
+
+    # Process a COMMAND_RENEW_RESPONSE. Renewal must never take the agent down, so
+    # anything unexpected is logged and the existing certificate is kept.
+    def handle_renewal_response(body)
+      body = body.to_s
+      status = body.bytes[0]
+      payload = body[1..-1].to_s
+
+      case status
+      when RENEW_STATUS_RENEWED
+        certificate = CertificateRenewal.new.install(payload)
+        if certificate
+          @agent.logger.info "Certificate renewed (issuer=#{certificate.issuer})"
+          # Reconnect so the new certificate is the one we present. close raises
+          # ServerDisconnected, which Agent#run catches and retries, and the new
+          # connection re-reads agent.crt from disk.
+          close
+        else
+          @agent.logger.debug "Server offered the certificate we already hold"
+        end
+      when RENEW_STATUS_CURRENT
+        @agent.logger.debug "Certificate is up to date"
+      when RENEW_STATUS_ERROR
+        @agent.logger.warn "Server could not renew our certificate: #{payload}"
+      else
+        @agent.logger.warn "Unknown certificate renewal status: #{status.inspect}"
+      end
+    rescue ServerDisconnected
+      raise
+    rescue => e
+      @agent.logger.warn "Certificate renewal failed: #{e.message}"
     end
 
     # Queue a packet of data to be sent to the Deploy server
