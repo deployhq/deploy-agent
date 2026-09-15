@@ -27,7 +27,7 @@ Gem::Specification.new do |s|
   s.add_dependency 'timers', '>= 4.3', '< 4.4'
 
   s.post_install_message = <<~MSG
-    WARNING: deploy-agent is deprecated and will not receive further updates.
+    WARNING: deploy-agent is deprecated and only receives essential fixes.
     Please migrate to the new agent: https://github.com/deployhq/network-agent
   MSG
 end

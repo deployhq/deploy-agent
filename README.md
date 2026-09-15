@@ -1,6 +1,6 @@
 # Deploy Agent
 
-> **DEPRECATED:** This gem is deprecated and will not receive further updates.
+> **DEPRECATED:** This gem is deprecated and only receives essential fixes.
 > Please migrate to the new [network-agent](https://github.com/deployhq/network-agent) instead,
 > which has fewer dependencies and is easier to install.
 >
@@ -139,7 +139,8 @@ once using the new certificate.
 A replacement is only written after it has been checked against the agent's
 existing private key and the certificate authorities the agent ships with. If
 any check fails, the agent logs a warning, keeps the certificate it already has
-and carries on. Run `deploy-agent run -v` to watch this happen.
+and carries on. A successful renewal is logged as `Certificate renewed` at the
+default log level, in `~/.deploy/agent.log` when the agent runs in the background.
 
 What matters on your side is staying up to date: an agent still presenting a
 certificate issued by the old authority after **17 March 2027** will not be able

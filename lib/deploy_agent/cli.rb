@@ -6,7 +6,7 @@ module DeployAgent
 
     DEPRECATION_NOTICE = <<~MSG
       \e[33m╔══════════════════════════════════════════════════════════════════╗
-      ║  DEPRECATED: deploy-agent will not receive further updates.      ║
+      ║  DEPRECATED: deploy-agent only receives essential fixes.         ║
       ║  Please migrate to the new agent:                                ║
       ║                                                                  ║
       ║    https://github.com/deployhq/network-agent                     ║
