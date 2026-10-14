@@ -20,10 +20,14 @@ Gem::Specification.new do |s|
 
   s.add_dependency 'nio4r', '~> 2.7'
   s.add_dependency 'rb-readline', '~> 0.5'
-  s.add_dependency 'timers', '~> 4.3'
+  # timers 4.4.0 raised required_ruby_version to >= 3.1. '~> 4.3' admits it, and the
+  # RubyGems shipped with Ruby 2.7 cannot back off to 4.3.5 on its own, so a plain
+  # `gem install deploy-agent` fails outright on every Ruby this gem still supports
+  # below 3.1. Keep the upper bound until required_ruby_version moves past 3.1.
+  s.add_dependency 'timers', '>= 4.3', '< 4.4'
 
   s.post_install_message = <<~MSG
-    WARNING: deploy-agent is deprecated and will not receive further updates.
+    WARNING: deploy-agent is deprecated and only receives essential fixes.
     Please migrate to the new agent: https://github.com/deployhq/network-agent
   MSG
 end

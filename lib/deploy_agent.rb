@@ -1,4 +1,5 @@
 require 'deploy_agent/version'
+require 'deploy_agent/certificate_renewal'
 require 'deploy_agent/configuration_generator'
 require 'deploy_agent/server_connection'
 require 'deploy_agent/destination_connection'
